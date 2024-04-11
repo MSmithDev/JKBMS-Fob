@@ -2,8 +2,7 @@
 #include "LovyanGFX.hpp"
 #include <string>
 #include "LGFX_Config.hpp"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+
 
 LGFX display; // Assuming display is defined elsewhere
 
