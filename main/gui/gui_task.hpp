@@ -4,7 +4,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-
+struct JKBMSData{
+    float packVoltage;
+    float packPower;
+    float avgCellVoltage;
+    float deltaCellVoltage;
+    float cellVoltages[24];
+    float cellResistances[24];
+};
 
 extern "C" {
 
