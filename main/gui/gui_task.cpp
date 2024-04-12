@@ -9,6 +9,10 @@
 #include <iomanip>
 #include <sstream>
 
+//Images
+#include "images/splash.h"
+#include "images/mainui.h"
+
 LGFX display; // Assuming display is defined elsewhere
 
 static const char* TAG = "GUI_Task";
@@ -49,6 +53,15 @@ unsigned int getBatteryColor(float voltage) {
     return (red << 16) | (green << 8);
 }
 
+int map_float_to_int(float input) {
+    if (input < 68.0 || input > 84.0) {
+        //printf("Input out of range. Please enter a value between 68 and 84.\n");
+        return 0;  // Return an error code if input is out of range
+    }
+
+    // Linear mapping from range 68 to 84 to range 0 to 67
+    return (int)((input - 68.0) * (67.0 / (84.0 - 68.0)));
+}
 
 void gui_task(void *pvParameters) {
 
@@ -56,23 +69,18 @@ void gui_task(void *pvParameters) {
 
 
     display.init();
-    display.fillScreen(TFT_BLACK);
-    float angle = 0;
-
-    LGFX_Sprite arcSprite(&display);
-    LGFX_Sprite bgSprite(&display);
-
-    arcSprite.createSprite(60, 60);
-    bgSprite.createSprite(240, 135);
     display.setSwapBytes(true);
-
-    //Splash Screen
-    bgSprite.fillSprite(TFT_BLACK);
-    bgSprite.setTextSize(2);
-    bgSprite.drawString("Splash Screen", 0, 0, 2);
-    bgSprite.pushSprite(0, 0);
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    display.setColorDepth(16);
     
+    //Splash Screen    
+    display.pushImage(0, 0, 240, 135, image_data_splash);
+
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    
+    //Create a sprite for the background
+    LGFX_Sprite bgSprite(&display);
+    bgSprite.createSprite(240, 135);
+
     //Main GUI Loop
     while (1) {
 
@@ -81,8 +89,24 @@ void gui_task(void *pvParameters) {
 
         }
 
+        bgSprite.setSwapBytes(true);
+        bgSprite.setColorDepth(16);
+        bgSprite.fillSprite(TFT_WHITE);
+        //draw battery voltage bar
+        //int barvalue = map_float_to_int(testRecv.packVoltage);
+
+        bgSprite.fillRect(163, 8, map_float_to_int(testRecv.packVoltage), 20, getBatteryColor(testRecv.packVoltage)); //Test blue
+        //draw voltage text
+        bgSprite.setTextColor(TFT_BLACK);
+        bgSprite.setTextSize(1.5);
+        bgSprite.drawString(floatToString(testRecv.packVoltage), 175, 13, 1);
+
+        //Push overlay UI
+        bgSprite.pushImage(0, 0, 240, 135, image_data_mainui, (uint16_t)0x07E0);
+        bgSprite.pushSprite(0, 0);
 
 
+        /*
         //set bg black
         bgSprite.fillSprite(TFT_BLACK);
 
@@ -119,8 +143,11 @@ void gui_task(void *pvParameters) {
         for(int i = 16; i < 24; i++){
             bgSprite.drawString(floatToString(testRecv.cellVoltages[i]), 180, 20 + ((i - 16) * 14), 1);
         }
-
         bgSprite.pushSprite(0, 0);
+        */
+        
+
+        
 
 
 
