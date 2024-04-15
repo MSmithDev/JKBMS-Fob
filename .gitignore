@@ -107,3 +107,4 @@ XUNIT_RESULT*.xml
 # Vale
 .vale/styles/*
 /.vscode
+sdkconfig.old
