@@ -231,7 +231,7 @@ bool SelectKey = false;
     if (!lastStateButton0 && currentStateButton0 && inSettings) {
         settingsPageState++;
         if (settingsPageState > 4) {
-            settingsPageState = 0;
+            settingsPageState = 1;
         }
     }
 
@@ -272,12 +272,18 @@ bool SelectKey = false;
         switch (currentScreen) {
 
             case 0: //Main Screen
+                if(SelectKey&& !inSettings) {
+                    SelectKey = false;  //Reset select key
+                    ESP_LOGI(TAG, "Select on main does nothing");
+                }
                 //Pass sprite and data to main screen function
                 //mainScreen(bgSprite, testRecv);
                 bgSprite.fillSprite(0x434343u); //Grey
                 //add nav bar
                 navBar(bgSprite, currentStateButton0, currentStateSelectKey, currentStateButton2);
-
+                bgSprite.setTextColor(TFT_BLACK);
+                bgSprite.setTextSize(3);
+                bgSprite.drawString("Main screen", 50, 40);
                 bgSprite.pushSprite(0, 0);
 
                 break;
