@@ -9,39 +9,59 @@
 #include <iomanip>
 #include <sstream>
 
-//Images
+// Images
 #include "images/splash.h"
 #include "images/mainui.h"
 #include "images/NavBar.h"
 
+// Screens
+#include "screens/main_screen/main_screen.hpp"
+#include "screens/settings_screen/settings_screen.hpp"
+#include "screens/control_screen/control_screen.hpp"
+#include "screens/info_screen/info_screen.hpp"
+
+// JKBMS Helper
+#include "helpers/jkbms.hpp"
+#include "helpers/page_states.hpp"
+
 LGFX display; // Assuming display is defined elsewhere
 
-static const char* TAG = "GUI_Task";
+static const char *TAG = "GUI_Task";
 
 extern QueueHandle_t gui_data_queue;
 
 bool inSettings = false;
 int currentScreen = 0;
-int settingsPageState = 0;
+// int settingsPageState = 0;
 
-const char* floatToString(float value) {
-    static std::string str;  // Made static to prolong its lifetime beyond the function scope
+// Screen state
+mainScreenState mainSS;
+// Page States
+settingsPageState settingsPS;
+controlPageState controlPS;
+infoPageState infoPS;
+
+const char *floatToString(float value)
+{
+    static std::string str; // Made static to prolong its lifetime beyond the function scope
     std::ostringstream out;
     out << std::fixed << std::setprecision(2) << value;
     str = out.str();
     return str.c_str();
 }
 
-//func to convert int to string
-const char* intToString(int value) {
-    static std::string str;  // Made static to prolong its lifetime beyond the function scope
+// func to convert int to string
+const char *intToString(int value)
+{
+    static std::string str; // Made static to prolong its lifetime beyond the function scope
     std::ostringstream out;
     out << value;
     str = out.str();
     return str.c_str();
 }
 
-unsigned int getBatteryColor(float voltage) {
+unsigned int getBatteryColor(float voltage)
+{
     // Clamp the voltage to the range [68.00, 84.00]
     voltage = std::max(68.00f, std::min(84.00f, voltage));
 
@@ -58,287 +78,310 @@ unsigned int getBatteryColor(float voltage) {
     return (red << 16) | (green << 8);
 }
 
-int map_float_to_int(float input) {
-    if (input < 68.0 || input > 84.0) {
-        //printf("Input out of range. Please enter a value between 68 and 84.\n");
-        return 0;  // Return an error code if input is out of range
+int map_float_to_int(float input)
+{
+    if (input < 68.0 || input > 84.0)
+    {
+        // printf("Input out of range. Please enter a value between 68 and 84.\n");
+        return 0; // Return an error code if input is out of range
     }
 
     // Linear mapping from range 68 to 84 to range 0 to 67
     return (int)((input - 68.0) * (67.0 / (84.0 - 68.0)));
 }
 
-//Main Screen
-    void mainScreen(LGFX_Sprite bgSprite, JKBMSData testRecv) {
-         bgSprite.fillSprite(TFT_WHITE);
-        //draw battery voltage bar
-        //int barvalue = map_float_to_int(testRecv.packVoltage);
-        bgSprite.fillRect(163, 8, map_float_to_int(testRecv.packVoltage), 20, getBatteryColor(testRecv.packVoltage)); //Test blue
-        //draw voltage text
-        bgSprite.setTextColor(TFT_BLACK);
-        bgSprite.setTextSize(1.5);
-        bgSprite.drawString(floatToString(testRecv.packVoltage), 175, 13);
+// Widgets
+// NavBar
+void navBar(LGFX_Sprite bgSprite, bool UpKey, bool SelectKey, bool DownKey)
+{
 
-        //Push overlay UI
-        bgSprite.pushImage(0, 0, 240, 135, image_data_mainui, (uint16_t)0x07E0);
-        bgSprite.pushSprite(0, 0);
-    }
+    uint16_t ActiveColor = 0xFFFF;   // Green
+    uint16_t InactiveColor = 0x0000; // Black
 
-//Widgets
-//NavBar
-void navBar(LGFX_Sprite bgSprite,bool UpKey, bool SelectKey, bool DownKey) {
-    
-    uint16_t ActiveColor = 0xFFFF; //Green
-    uint16_t InactiveColor = 0x0000; //Black
-
-
-    //three squares for the buttons
+    // three squares for the buttons
     bgSprite.fillRect(1, 14, 27, 27, UpKey ? ActiveColor : InactiveColor);
-    bgSprite.fillRect(1, 54, 27, 27, !SelectKey ? ActiveColor : InactiveColor); //Inverted
+    bgSprite.fillRect(1, 54, 27, 27, !SelectKey ? ActiveColor : InactiveColor); // Inverted
     bgSprite.fillRect(1, 95, 27, 27, DownKey ? ActiveColor : InactiveColor);
 
-
-    bgSprite.pushImage(0, 0, 30, 135, image_data_NavBar, (uint16_t)0x07E0); //Add NavBar with transparent color
+    bgSprite.pushImage(0, 0, 30, 135, image_data_NavBar, (uint16_t)0x07E0); // Add NavBar with transparent color
 }
 
-void settingsScreen(LGFX_Sprite bgSprite,bool &SelectKey ,int pageState) {
-   
-    if(currentScreen == 3 && SelectKey && settingsPageState == 0) {
-                    settingsPageState = 1; //Bluetooth
-                    inSettings = true;
-                    SelectKey = false;  //Reset select key
-                    ESP_LOGI(TAG, "Shoud only run once");
-                }
-    if(settingsPageState == 4 && SelectKey) {
-                    inSettings = false;
-                    SelectKey = false;  //Reset select key
-                    settingsPageState = 0;
-                    ESP_LOGI(TAG, "Shoud only run once");
-                }
-                
-                switch (settingsPageState)
-                {
-                case 0: //Settings Text
+// void settingsScreenold(LGFX_Sprite bgSprite,bool &SelectKey ,int pageState) {
 
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(3);
-                bgSprite.drawString("Settings", 50, 40);
-                    break;
-                
-                case 1: //Bluetooth
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(3);
-                bgSprite.drawString("BlE Setup", 50, 40);
-                    break;
-                
-                case 2: //Sleep Modes
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(3);
-                bgSprite.drawString("Sleep Modes", 50, 40);
-                    break;
-                
-                case 3: //Brightness
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(3);
-                bgSprite.drawString("Brightness", 50, 40);
-                    break;
-                
-                case 4: //Back
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(3);
-                bgSprite.drawString("Back", 50, 40);
-                    break;
-                }
-}
+//     if(currentScreen == 3 && SelectKey && settingsPageState == 0) {
+//                     settingsPageState = 1; //Bluetooth
+//                     inSettings = true;
+//                     SelectKey = false;  //Reset select key
+//                     ESP_LOGI(TAG, "Shoud only run once");
+//                 }
+//     if(settingsPageState == 4 && SelectKey) {
+//                     inSettings = false;
+//                     SelectKey = false;  //Reset select key
+//                     settingsPageState = 0;
+//                     ESP_LOGI(TAG, "Shoud only run once");
+//                 }
 
-void gui_task(void *pvParameters) {
+//                 switch (settingsPageState)
+//                 {
+//                 case 0: //Settings Text
+
+//                 bgSprite.setTextColor(TFT_BLACK);
+//                 bgSprite.setTextSize(3);
+//                 bgSprite.drawString("Settings", 50, 40);
+//                     break;
+
+//                 case 1: //Bluetooth
+//                 bgSprite.setTextColor(TFT_BLACK);
+//                 bgSprite.setTextSize(3);
+//                 bgSprite.drawString("BlE Setup", 50, 40);
+//                     break;
+
+//                 case 2: //Sleep Modes
+//                 bgSprite.setTextColor(TFT_BLACK);
+//                 bgSprite.setTextSize(3);
+//                 bgSprite.drawString("Sleep Modes", 50, 40);
+//                     break;
+
+//                 case 3: //Brightness
+//                 bgSprite.setTextColor(TFT_BLACK);
+//                 bgSprite.setTextSize(3);
+//                 bgSprite.drawString("Brightness", 50, 40);
+//                     break;
+
+//                 case 4: //Back
+//                 bgSprite.setTextColor(TFT_BLACK);
+//                 bgSprite.setTextSize(3);
+//                 bgSprite.drawString("Back", 50, 40);
+//                     break;
+//                 }
+// }
+
+void gui_task(void *pvParameters)
+{
 
     JKBMSData testRecv;
-    
+    mainSS.selectedOption = 0;
+    mainSS.scrollable = true;
+    mainSS.currentScreen = 0;
 
-    //Initialize 3 buttons
-    //Button UP
+    // Initialize 3 buttons
+    // Button UP
     gpio_pad_select_gpio(GPIO_NUM_0);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_set_pull_mode(GPIO_NUM_0, GPIO_PULLUP_ONLY);
-    //Button SELECT
+    // Button SELECT
     gpio_pad_select_gpio(GPIO_NUM_1);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_set_pull_mode(GPIO_NUM_0, GPIO_PULLUP_ONLY);
-    //Button DOWN
+    // Button DOWN
     gpio_pad_select_gpio(GPIO_NUM_2);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
     gpio_set_pull_mode(GPIO_NUM_0, GPIO_PULLUP_ONLY);
 
-
-
-
     display.init();
     display.setSwapBytes(true);
     display.setColorDepth(16);
-    
-    //Splash Screen    
+
+    // Splash Screen
     display.pushImage(0, 0, 240, 135, image_data_splash);
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-    
-    //Create a sprite for the background
+
+    // Create a sprite for the background
     LGFX_Sprite bgSprite(&display);
     bgSprite.createSprite(240, 135);
 
+    // Screens
 
-    //Screens
-
-    
     // Variable to remember the last state of the button
-bool lastStateButton0 = true;
-bool lastStateButton2 = true;
-bool lastStateSelectKey = true;
-bool SelectKey = false;
+    bool lasUPKeyState = true;
+    bool lasDownKeyState = true;
+    bool lasSelectKeyState = true;
+    bool SelectKey = false;
 
+    // Main GUI Loop
+    while (1)
+    {
 
-    //Main GUI Loop
-    while (1) {
-
-        if(xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5)){
+        if (xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5))
+        {
             ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
-
         }
-        //ESP_LOGI(TAG, "current screen: %d", currentScreen);
-        //button states
-        ESP_LOGI(TAG, "CurrentScreen %d, Button 0: %d, Button 1: %d, Button 2: %d SelectKey: %i, InSettings: %i, settingPageState %i", currentScreen,gpio_get_level(GPIO_NUM_0), gpio_get_level(GPIO_NUM_1), gpio_get_level(GPIO_NUM_2),SelectKey,inSettings,settingsPageState);
 
-        #include <stdbool.h>
-    
-    //Page States
-    //Settings State
-    
+        // print mainSS state
+        if (mainSS.selectedOption == 0)
+            ESP_LOGI(TAG, "Main Screen State: Selected Option: %d, Scrollable: %d, Current Screen: %d", mainSS.selectedOption, mainSS.scrollable, mainSS.currentScreen);
 
+        if (mainSS.selectedOption == 3)
+            ESP_LOGI(TAG, "Settings Screen State: Current Selected: %d, Selected Setting : %d, isActive: %i, ShowOptions %i", settingsPS.currentSelection, settingsPS.selectedSetting, settingsPS.isActivePage, settingsPS.showOptions);
+            
 
 
-    bool currentStateButton0 = gpio_get_level(GPIO_NUM_0) == 0;
-    bool currentStateButton2 = gpio_get_level(GPIO_NUM_2) == 1;
-    bool currentStateSelectKey = gpio_get_level(GPIO_NUM_1) == 0;
 
-    // Check for a high-to-low transition on GPIO_NUM_0 (button pressed)
-    if (!lastStateButton0 && currentStateButton0 && !inSettings) {
-        currentScreen++;
-        if (currentScreen > 3) {
-            currentScreen = 0;
+#include <stdbool.h>
+
+        // Page States
+        // Settings State
+
+        bool curUPKeyState = gpio_get_level(GPIO_NUM_0) == 0;
+        bool curDownKeyState = gpio_get_level(GPIO_NUM_2) == 1;
+        bool curSelectKeyState = gpio_get_level(GPIO_NUM_1) == 0;
+
+        switch (mainSS.currentScreen)
+        {
+
+        case 0: // Main Screen
+            if (!lasSelectKeyState && curSelectKeyState)
+            {
+                SelectKey = false; // Reset select key
+                ESP_LOGI(TAG, "Select on main does nothing");
+            }
+            break;
+
+        case 1: // Info Screen
+            if (!lasSelectKeyState && curSelectKeyState)
+            {
+                SelectKey = false; // Reset select key
+                ESP_LOGI(TAG, "Select on info does nothing");
+            }
+            break;
+
+        case 2: // Control Screen
+            if (!lasSelectKeyState && curSelectKeyState)
+            {
+                SelectKey = false; // Reset select key
+                ESP_LOGI(TAG, "Select on CTRL does nothing");
+            }
+            break;
+
+        case 3: // Settings Screen
+            if (!lasSelectKeyState && curSelectKeyState)
+            {
+                SelectKey = false; // Reset select key
+                
+                //If settings is selected, go to settings screen
+                ESP_LOGI(TAG, "Select triggered settings screen");
+                mainSS.selectedOption = 3;
+                mainSS.scrollable = false;
+                if(!settingsPS.isActivePage)
+                settingsPS.currentSelection = 1;
+                settingsPS.isActivePage = true;
+                settingsPS.showOptions = true;
+
+                //If back is selected go back to main screen
+                if(settingsPS.currentSelection == 4)
+                {
+                    ESP_LOGI(TAG, "Select triggered back from settings");
+                    settingsPS.isActivePage = false;
+                    settingsPS.showOptions = false;
+                    settingsPS.selectedSetting = 0;
+                    mainSS.selectedOption = 0;
+                    mainSS.scrollable = true;
+
+                }
+                
+            }
+
+            //logic for settings screen options
+            if ((!lasUPKeyState && curUPKeyState) && (settingsPS.isActivePage && settingsPS.showOptions))
+            {
+                settingsPS.currentSelection--;
+                if (settingsPS.currentSelection < 1)
+                {
+                    settingsPS.currentSelection = 1;
+                }
+            }
+            if ((!lasDownKeyState && curDownKeyState) && (settingsPS.isActivePage && settingsPS.showOptions))
+            {
+                settingsPS.currentSelection++;
+                if (settingsPS.currentSelection > 4)
+                {
+                    settingsPS.currentSelection = 4;
+                }
+            }
+            break;
         }
-    }
-    //settings screens
-    if (!lastStateButton0 && currentStateButton0 && inSettings) {
-        settingsPageState++;
-        if (settingsPageState > 4) {
-            settingsPageState = 1;
+
+        // if on main scr
+        if (mainSS.selectedOption == 0 && mainSS.scrollable)
+        {
+            if (!lasUPKeyState && curUPKeyState)
+            {
+                mainSS.currentScreen--;
+                if (mainSS.currentScreen < 0)
+                {
+                    mainSS.currentScreen = 3;
+                }
+            }
+            if (!lasDownKeyState && curDownKeyState)
+            {
+                mainSS.currentScreen++;
+                if (mainSS.currentScreen > 3)
+                {
+                    mainSS.currentScreen = 0;
+                }
+            }
         }
-    }
-
-    // Check for a low-to-high transition on GPIO_NUM_2 (button released)
-    if (!lastStateButton2 && currentStateButton2 && !inSettings) {
-        currentScreen--;
-        if (currentScreen < 0) {
-            currentScreen = 3;
-        }
-    }
-    if (!lastStateButton2 && currentStateButton2 && inSettings) {
-        settingsPageState--;
-        if (settingsPageState < 1) {
-            settingsPageState = 4;
-        }
-    }
-
-    // Check for a high-to-low transition on GPIO_NUM_4 ("select" key pressed)
-    if (lastStateSelectKey && !currentStateSelectKey) {
-        // Perform the action associated with the "select" key
-        // Example action: Toggle a boolean flag, trigger a function, etc.
-        SelectKey = true;
-    }
-
-    // Update last state to current state
-    lastStateButton0 = currentStateButton0;
-    lastStateButton2 = currentStateButton2;
-    lastStateSelectKey = currentStateSelectKey;
 
 
-
+        // Update last state to current state
+        lasUPKeyState = curUPKeyState;
+        lasDownKeyState = curDownKeyState;
+        lasSelectKeyState = curSelectKeyState;
 
         bgSprite.setSwapBytes(true);
         bgSprite.setColorDepth(16);
-        
-        //switrch case for different screens
-        //switrch case for different screens
-        switch (currentScreen) {
 
-            case 0: //Main Screen
-                if(SelectKey&& !inSettings) {
-                    SelectKey = false;  //Reset select key
-                    ESP_LOGI(TAG, "Select on main does nothing");
-                }
-                //Pass sprite and data to main screen function
-                //mainScreen(bgSprite, testRecv);
-                bgSprite.fillSprite(0x434343u); //Grey
-                //add nav bar
-                navBar(bgSprite, currentStateButton0, currentStateSelectKey, currentStateButton2);
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(3);
-                bgSprite.drawString("Main screen", 50, 40);
-                bgSprite.pushSprite(0, 0);
+        // switch case for different screens
+        switch (mainSS.currentScreen)
+        {
 
-                break;
+        case 0: // Main Screen
+            if (SelectKey && !inSettings)
+            {
+                SelectKey = false; // Reset select key
+                ESP_LOGI(TAG, "Select on main does nothing");
+            }
 
+            main_screen(bgSprite, &testRecv);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
 
-            case 1: //Cell Voltage Screen
-                //Cell Voltage Screen
-                bgSprite.fillSprite(0x434343u); //Grey
-                //add nav bar
-                navBar(bgSprite, currentStateButton0, currentStateSelectKey, currentStateButton2);
+            bgSprite.pushSprite(0, 0);
+            break;
 
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(1.5);
-                bgSprite.drawString("Cell Voltage Screen", 40, 10);
-                bgSprite.drawString("Cell 0 Voltage: ", 40, 30);
-                bgSprite.drawString(floatToString(testRecv.cellVoltages[0]), 10, 50);
-                bgSprite.drawString("Cell 1 Voltage: ", 40, 70);
-                bgSprite.drawString(floatToString(testRecv.cellVoltages[1]), 10, 90);
-                bgSprite.drawString("Cell 2 Voltage: ", 40, 110);
-                bgSprite.drawString(floatToString(testRecv.cellVoltages[2]), 10, 130);
-                bgSprite.pushSprite(0, 0);
-                break;
-            case 2: //cell resistance screen
-                bgSprite.fillSprite(0x434343u); //Grey
-                navBar(bgSprite, currentStateButton0, currentStateSelectKey, currentStateButton2);
+        case 1: // Info Screen 1
+            if (SelectKey && !inSettings)
+            {
+                SelectKey = false; // Reset select key
+                ESP_LOGI(TAG, "Select on info does nothing");
+            }
+            bgSprite.fillSprite(0x434343u); // Grey
+            info_screen(bgSprite);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
 
-                bgSprite.setTextColor(TFT_BLACK);
-                bgSprite.setTextSize(1.5);
-                bgSprite.drawString("Cell Resistance Screen", 40, 10 );
-                bgSprite.drawString("Cell 0 Resistance: ", 40, 30);
-                bgSprite.drawString(floatToString(testRecv.cellResistances[0]), 40, 50);
-                bgSprite.drawString("Cell 1 Resistance: ", 40, 70);
-                bgSprite.drawString(floatToString(testRecv.cellResistances[1]), 40, 90);
-                bgSprite.pushSprite(0, 0);
-                break;
-            
-            case 3: //settings screen
-                bgSprite.fillSprite(0x434343u); //Grey
-                
-                navBar(bgSprite, currentStateButton0, currentStateSelectKey, currentStateButton2);
-                
-                settingsScreen(bgSprite, SelectKey,inSettings);
-                
-                bgSprite.pushSprite(0, 0);
+            break;
+        case 2: // Control Screen
+            if (SelectKey && !inSettings)
+            {
+                SelectKey = false; // Reset select key
+                ESP_LOGI(TAG, "Select on CTRL does nothing");
+            }
+            bgSprite.fillSprite(0x434343u); // Grey
+            control_screen(bgSprite);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
+            break;
 
+        case 3: // settings screen
 
-                
-                break;
-        
-       
+            bgSprite.fillSprite(0x434343u); // Grey
+            settings_screen(bgSprite, settingsPS);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
+            break;
 
-        
-
-
-        vTaskDelay(10 / portTICK_PERIOD_MS);
-     }
+            vTaskDelay(10 / portTICK_PERIOD_MS);
+        }
     }
 }

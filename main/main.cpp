@@ -8,7 +8,25 @@
 #include <iostream>
 #include <random>
 
+#include "ble/ble_task.hpp"
+#include "helpers/jkbms.hpp"
+
 static const char *TAG = "Main";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 QueueHandle_t gui_data_queue;
 
@@ -82,4 +100,7 @@ extern "C" void app_main()
 
     // Create test sender
     xTaskCreatePinnedToCore(blesenderTask, "bleSender_Task", 4096, NULL, 0, NULL, 0);
+
+    //BLE Task
+    xTaskCreatePinnedToCore(ble_task, "ble_task", 4096, NULL, 1, NULL, 0);
 }
