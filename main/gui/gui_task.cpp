@@ -211,10 +211,10 @@ void gui_task(void *pvParameters)
     while (1)
     {
 
-        if (xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5))
-        {
-            ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
-        }
+        //if (xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5))
+        //{
+        //    ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
+        //}
 
         //handle ble queue
         if(xQueueReceive(bleScan_data_queue, &(bleScan), (TickType_t)5))
@@ -239,7 +239,7 @@ void gui_task(void *pvParameters)
         {
 
         }
-            //ESP_LOGI(TAG, "Settings Screen State: Current Selected: %d, Selected Setting : %d, isActive: %i, ShowOptions %i", settingsPS.currentSelection, settingsPS.selectedSetting, settingsPS.isActivePage, settingsPS.showOptions);
+            ESP_LOGI(TAG, "Settings Screen State: Current Selected: %d, Selected Setting : %d, isActive: %i, ShowOptions %i", settingsPS.currentSelection, settingsPS.selectedSetting, settingsPS.isActivePage, settingsPS.showOptions);
 
 #include <stdbool.h>
 
@@ -319,6 +319,9 @@ void gui_task(void *pvParameters)
                     mainSS.selectedOption = 0;
                     mainSS.scrollable = true;
                 }
+
+                // IF BLE Setup is selected
+                
             }
 
             // logic for settings screen options
