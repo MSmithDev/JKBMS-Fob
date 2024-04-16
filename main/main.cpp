@@ -8,24 +8,14 @@
 #include <iostream>
 #include <random>
 
-#include "ble/ble_task.hpp"
+
 #include "helpers/jkbms.hpp"
 
+extern "C" {
+    #include "ble/ble_task.h"
+}
+
 static const char *TAG = "Main";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 QueueHandle_t gui_data_queue;
@@ -50,7 +40,7 @@ float randFloat(float min_val, float max_val)
 
 void blesenderTask(void *parameter)
 {
-    int arrayToSend[10] = {84, 100, 0, 3, 4, 5, 6, 7, 8, 9};
+
 
     JKBMSData test;
 
@@ -101,6 +91,7 @@ extern "C" void app_main()
     // Create test sender
     xTaskCreatePinnedToCore(blesenderTask, "bleSender_Task", 4096, NULL, 0, NULL, 0);
 
+    
     //BLE Task
     xTaskCreatePinnedToCore(ble_task, "ble_task", 4096, NULL, 1, NULL, 0);
 }

@@ -4,7 +4,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "LovyanGFX.hpp"
+
 #include "helpers/jkbms.hpp"
 
 extern "C" {

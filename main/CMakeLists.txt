@@ -4,5 +4,7 @@ idf_component_register(SRCS "main.cpp"
 "gui/screens/settings_screen/settings_screen.cpp"
 "gui/screens/control_screen/control_screen.cpp"
 "gui/screens/info_screen/info_screen.cpp"
-"ble/ble_task.cpp"
-                    INCLUDE_DIRS ".")
+"ble/ble_task.c"
+                    INCLUDE_DIRS "."
+                    
+                    )
