@@ -5,7 +5,6 @@
 #include "LovyanGFX.hpp"
 #endif
 
-#include "helpers/jkbms.hpp"
 
 
 void info_screen(LGFX_Sprite canvas);

@@ -21,7 +21,7 @@
 #include "screens/info_screen/info_screen.hpp"
 
 // JKBMS Helper
-#include "helpers/jkbms.hpp"
+#include "helpers/jkbms.h"
 #include "helpers/page_states.hpp"
 
 LGFX display; // Assuming display is defined elsewhere
@@ -155,9 +155,14 @@ void navBar(LGFX_Sprite bgSprite, bool UpKey, bool SelectKey, bool DownKey)
 //                     break;
 //                 }
 // }
+// Queue for sending data to the GUI
+
+extern QueueHandle_t ble_data_queue;
+extern QueueHandle_t bleScan_data_queue;
 
 void gui_task(void *pvParameters)
 {
+    ble_data_queue = xQueueCreate(5, sizeof(struct BLEControl));
 
     JKBMSData testRecv;
     mainSS.selectedOption = 0;
@@ -198,6 +203,9 @@ void gui_task(void *pvParameters)
     bool lasDownKeyState = true;
     bool lasSelectKeyState = true;
     bool SelectKey = false;
+    
+    // BLE Scan Data
+    BLEScan bleScan[20];
 
     // Main GUI Loop
     while (1)
@@ -208,15 +216,30 @@ void gui_task(void *pvParameters)
             ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
         }
 
+        //handle ble queue
+        if(xQueueReceive(bleScan_data_queue, &(bleScan), (TickType_t)5))
+        {
+            for(int i = 0; i < 20; i++)
+            {
+                
+                ESP_LOGI(TAG, "Got data from BLE queue! Device Name: %s, RSSI: %d", bleScan[i].deviceName, bleScan[i].rssi);
+            
+            }
+            
+        }
+
         // print mainSS state
         if (mainSS.selectedOption == 0)
-            ESP_LOGI(TAG, "Main Screen State: Selected Option: %d, Scrollable: %d, Current Screen: %d", mainSS.selectedOption, mainSS.scrollable, mainSS.currentScreen);
+        {
+
+        }
+            //ESP_LOGI(TAG, "Main Screen State: Selected Option: %d, Scrollable: %d, Current Screen: %d", mainSS.selectedOption, mainSS.scrollable, mainSS.currentScreen);
 
         if (mainSS.selectedOption == 3)
-            ESP_LOGI(TAG, "Settings Screen State: Current Selected: %d, Selected Setting : %d, isActive: %i, ShowOptions %i", settingsPS.currentSelection, settingsPS.selectedSetting, settingsPS.isActivePage, settingsPS.showOptions);
-            
+        {
 
-
+        }
+            //ESP_LOGI(TAG, "Settings Screen State: Current Selected: %d, Selected Setting : %d, isActive: %i, ShowOptions %i", settingsPS.currentSelection, settingsPS.selectedSetting, settingsPS.isActivePage, settingsPS.showOptions);
 
 #include <stdbool.h>
 
@@ -235,6 +258,15 @@ void gui_task(void *pvParameters)
             {
                 SelectKey = false; // Reset select key
                 ESP_LOGI(TAG, "Select on main does nothing");
+                BLEControl test;
+                test.connect=true;
+                test.disconnect=false;
+                test.startScan=true;
+                test.stopScan=false;
+                if (xQueueSend(ble_data_queue, &(test), portMAX_DELAY) != pdPASS)
+                {
+                    ESP_LOGI(TAG, "Failed to send array to queue");
+                }
             }
             break;
 
@@ -243,6 +275,15 @@ void gui_task(void *pvParameters)
             {
                 SelectKey = false; // Reset select key
                 ESP_LOGI(TAG, "Select on info does nothing");
+                BLEControl test;
+                test.connect=true;
+                test.disconnect=false;
+                test.startScan=false;
+                test.stopScan=true;
+                if (xQueueSend(ble_data_queue, &(test), portMAX_DELAY) != pdPASS)
+                {
+                    ESP_LOGI(TAG, "Failed to send array to queue");
+                }
             }
             break;
 
@@ -258,18 +299,18 @@ void gui_task(void *pvParameters)
             if (!lasSelectKeyState && curSelectKeyState)
             {
                 SelectKey = false; // Reset select key
-                
-                //If settings is selected, go to settings screen
+
+                // If settings is selected, go to settings screen
                 ESP_LOGI(TAG, "Select triggered settings screen");
                 mainSS.selectedOption = 3;
                 mainSS.scrollable = false;
-                if(!settingsPS.isActivePage)
-                settingsPS.currentSelection = 1;
+                if (!settingsPS.isActivePage)
+                    settingsPS.currentSelection = 1;
                 settingsPS.isActivePage = true;
                 settingsPS.showOptions = true;
 
-                //If back is selected go back to main screen
-                if(settingsPS.currentSelection == 4)
+                // If back is selected go back to main screen
+                if (settingsPS.currentSelection == 4)
                 {
                     ESP_LOGI(TAG, "Select triggered back from settings");
                     settingsPS.isActivePage = false;
@@ -277,12 +318,10 @@ void gui_task(void *pvParameters)
                     settingsPS.selectedSetting = 0;
                     mainSS.selectedOption = 0;
                     mainSS.scrollable = true;
-
                 }
-                
             }
 
-            //logic for settings screen options
+            // logic for settings screen options
             if ((!lasUPKeyState && curUPKeyState) && (settingsPS.isActivePage && settingsPS.showOptions))
             {
                 settingsPS.currentSelection--;
@@ -322,7 +361,6 @@ void gui_task(void *pvParameters)
                 }
             }
         }
-
 
         // Update last state to current state
         lasUPKeyState = curUPKeyState;

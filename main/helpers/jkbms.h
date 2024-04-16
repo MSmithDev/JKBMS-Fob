@@ -1,5 +1,5 @@
-#ifndef JKBMS_HPP
-#define JKBMS_HPP
+#ifndef JKBMS_H
+#define JKBMS_H
 
 
 struct JKBMSData{
@@ -20,5 +20,20 @@ struct BLEState{
     int rssi;
 };
 
+struct BLEControl{
+    bool startScan;
+    bool stopScan;
+    bool connect;
+    bool disconnect;
 
-#endif // JKBMS_HPP
+
+};
+
+struct BLEScan{
+    char deviceName[20];
+    unsigned char deviceAddress[6];
+    int rssi;
+};
+
+
+#endif // JKBMS_H

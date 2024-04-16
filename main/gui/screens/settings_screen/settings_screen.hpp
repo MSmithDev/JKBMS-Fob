@@ -5,7 +5,7 @@
 #include "LovyanGFX.hpp"
 #endif
 
-#include "helpers/jkbms.hpp"
+#include "helpers/jkbms.h"
 #include "helpers/page_states.hpp"
 
 
