@@ -27,4 +27,13 @@ struct controlPageState {
 
 };
 
+struct GlobalState {
+    int CurrentScreen;
+    int CurrentPage;
+    int CurrentSubPage;
+    bool upKey;
+    bool downKey;
+    bool selectKey;
+};
+
 #endif // PAGE_STATES_HPP

@@ -34,6 +34,8 @@ bool inSettings = false;
 int currentScreen = 0;
 // int settingsPageState = 0;
 
+GlobalState globalState;
+
 // Screen state
 mainScreenState mainSS;
 // Page States
@@ -106,55 +108,6 @@ void navBar(LGFX_Sprite bgSprite, bool UpKey, bool SelectKey, bool DownKey)
     bgSprite.pushImage(0, 0, 30, 135, image_data_NavBar, (uint16_t)0x07E0); // Add NavBar with transparent color
 }
 
-// void settingsScreenold(LGFX_Sprite bgSprite,bool &SelectKey ,int pageState) {
-
-//     if(currentScreen == 3 && SelectKey && settingsPageState == 0) {
-//                     settingsPageState = 1; //Bluetooth
-//                     inSettings = true;
-//                     SelectKey = false;  //Reset select key
-//                     ESP_LOGI(TAG, "Shoud only run once");
-//                 }
-//     if(settingsPageState == 4 && SelectKey) {
-//                     inSettings = false;
-//                     SelectKey = false;  //Reset select key
-//                     settingsPageState = 0;
-//                     ESP_LOGI(TAG, "Shoud only run once");
-//                 }
-
-//                 switch (settingsPageState)
-//                 {
-//                 case 0: //Settings Text
-
-//                 bgSprite.setTextColor(TFT_BLACK);
-//                 bgSprite.setTextSize(3);
-//                 bgSprite.drawString("Settings", 50, 40);
-//                     break;
-
-//                 case 1: //Bluetooth
-//                 bgSprite.setTextColor(TFT_BLACK);
-//                 bgSprite.setTextSize(3);
-//                 bgSprite.drawString("BlE Setup", 50, 40);
-//                     break;
-
-//                 case 2: //Sleep Modes
-//                 bgSprite.setTextColor(TFT_BLACK);
-//                 bgSprite.setTextSize(3);
-//                 bgSprite.drawString("Sleep Modes", 50, 40);
-//                     break;
-
-//                 case 3: //Brightness
-//                 bgSprite.setTextColor(TFT_BLACK);
-//                 bgSprite.setTextSize(3);
-//                 bgSprite.drawString("Brightness", 50, 40);
-//                     break;
-
-//                 case 4: //Back
-//                 bgSprite.setTextColor(TFT_BLACK);
-//                 bgSprite.setTextSize(3);
-//                 bgSprite.drawString("Back", 50, 40);
-//                     break;
-//                 }
-// }
 // Queue for sending data to the GUI
 
 extern QueueHandle_t ble_data_queue;
@@ -202,8 +155,10 @@ void gui_task(void *pvParameters)
     bool lasUPKeyState = true;
     bool lasDownKeyState = true;
     bool lasSelectKeyState = true;
-    bool SelectKey = false;
     
+
+    globalState.CurrentPage = 0; // Main Page
+
     // BLE Scan Data
     BLEScan bleScan[20];
 
@@ -228,19 +183,7 @@ void gui_task(void *pvParameters)
             
         }
 
-        // print mainSS state
-        if (mainSS.selectedOption == 0)
-        {
-
-        }
-            //ESP_LOGI(TAG, "Main Screen State: Selected Option: %d, Scrollable: %d, Current Screen: %d", mainSS.selectedOption, mainSS.scrollable, mainSS.currentScreen);
-
-        if (mainSS.selectedOption == 3)
-        {
-
-        }
-            ESP_LOGI(TAG, "Settings Screen State: Current Selected: %d, Selected Setting : %d, isActive: %i, ShowOptions %i", settingsPS.currentSelection, settingsPS.selectedSetting, settingsPS.isActivePage, settingsPS.showOptions);
-
+  
 #include <stdbool.h>
 
         // Page States
@@ -250,120 +193,37 @@ void gui_task(void *pvParameters)
         bool curDownKeyState = gpio_get_level(GPIO_NUM_2) == 1;
         bool curSelectKeyState = gpio_get_level(GPIO_NUM_1) == 0;
 
-        switch (mainSS.currentScreen)
-        {
+       
 
-        case 0: // Main Screen
-            if (!lasSelectKeyState && curSelectKeyState)
-            {
-                SelectKey = false; // Reset select key
-                ESP_LOGI(TAG, "Select on main does nothing");
-                BLEControl test;
-                test.connect=true;
-                test.disconnect=false;
-                test.startScan=true;
-                test.stopScan=false;
-                if (xQueueSend(ble_data_queue, &(test), portMAX_DELAY) != pdPASS)
-                {
-                    ESP_LOGI(TAG, "Failed to send array to queue");
-                }
-            }
-            break;
 
-        case 1: // Info Screen
-            if (!lasSelectKeyState && curSelectKeyState)
-            {
-                SelectKey = false; // Reset select key
-                ESP_LOGI(TAG, "Select on info does nothing");
-                BLEControl test;
-                test.connect=true;
-                test.disconnect=false;
-                test.startScan=false;
-                test.stopScan=true;
-                if (xQueueSend(ble_data_queue, &(test), portMAX_DELAY) != pdPASS)
-                {
-                    ESP_LOGI(TAG, "Failed to send array to queue");
-                }
-            }
-            break;
-
-        case 2: // Control Screen
-            if (!lasSelectKeyState && curSelectKeyState)
-            {
-                SelectKey = false; // Reset select key
-                ESP_LOGI(TAG, "Select on CTRL does nothing");
-            }
-            break;
-
-        case 3: // Settings Screen
-            if (!lasSelectKeyState && curSelectKeyState)
-            {
-                SelectKey = false; // Reset select key
-
-                // If settings is selected, go to settings screen
-                ESP_LOGI(TAG, "Select triggered settings screen");
-                mainSS.selectedOption = 3;
-                mainSS.scrollable = false;
-                if (!settingsPS.isActivePage)
-                    settingsPS.currentSelection = 1;
-                settingsPS.isActivePage = true;
-                settingsPS.showOptions = true;
-
-                // If back is selected go back to main screen
-                if (settingsPS.currentSelection == 4)
-                {
-                    ESP_LOGI(TAG, "Select triggered back from settings");
-                    settingsPS.isActivePage = false;
-                    settingsPS.showOptions = false;
-                    settingsPS.selectedSetting = 0;
-                    mainSS.selectedOption = 0;
-                    mainSS.scrollable = true;
-                }
-
-                // IF BLE Setup is selected
-                
-            }
-
-            // logic for settings screen options
-            if ((!lasUPKeyState && curUPKeyState) && (settingsPS.isActivePage && settingsPS.showOptions))
-            {
-                settingsPS.currentSelection--;
-                if (settingsPS.currentSelection < 1)
-                {
-                    settingsPS.currentSelection = 1;
-                }
-            }
-            if ((!lasDownKeyState && curDownKeyState) && (settingsPS.isActivePage && settingsPS.showOptions))
-            {
-                settingsPS.currentSelection++;
-                if (settingsPS.currentSelection > 4)
-                {
-                    settingsPS.currentSelection = 4;
-                }
-            }
-            break;
-        }
-
-        // if on main scr
-        if (mainSS.selectedOption == 0 && mainSS.scrollable)
-        {
+            // logic for UP key
             if (!lasUPKeyState && curUPKeyState)
             {
-                mainSS.currentScreen--;
-                if (mainSS.currentScreen < 0)
-                {
-                    mainSS.currentScreen = 3;
-                }
+                globalState.upKey = true;
             }
+            else{
+                globalState.upKey = false;
+            }
+
+            // logic for Down key
             if (!lasDownKeyState && curDownKeyState)
             {
-                mainSS.currentScreen++;
-                if (mainSS.currentScreen > 3)
-                {
-                    mainSS.currentScreen = 0;
-                }
+                globalState.downKey = true;
             }
-        }
+            else{
+                globalState.downKey = false;
+            }
+
+            // logic for Select key (inverted?)
+            if (!lasSelectKeyState && curSelectKeyState)
+            {
+                globalState.selectKey = false;
+            }
+            else{
+                globalState.selectKey = true;
+            }
+ 
+
 
         // Update last state to current state
         lasUPKeyState = curUPKeyState;
@@ -373,56 +233,15 @@ void gui_task(void *pvParameters)
         bgSprite.setSwapBytes(true);
         bgSprite.setColorDepth(16);
 
-        // switch case for different screens
-        switch (mainSS.currentScreen)
-        {
-
-        case 0: // Main Screen
-            if (SelectKey && !inSettings)
-            {
-                SelectKey = false; // Reset select key
-                ESP_LOGI(TAG, "Select on main does nothing");
+            switch(globalState.CurrentPage) {
+                case 0:
+                    
+                    main_screen(bgSprite, &testRecv);
+                    navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+                    bgSprite.pushSprite(0, 0);
+                    break;
             }
-
-            main_screen(bgSprite, &testRecv);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-
-            bgSprite.pushSprite(0, 0);
-            break;
-
-        case 1: // Info Screen 1
-            if (SelectKey && !inSettings)
-            {
-                SelectKey = false; // Reset select key
-                ESP_LOGI(TAG, "Select on info does nothing");
-            }
-            bgSprite.fillSprite(0x434343u); // Grey
-            info_screen(bgSprite);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            bgSprite.pushSprite(0, 0);
-
-            break;
-        case 2: // Control Screen
-            if (SelectKey && !inSettings)
-            {
-                SelectKey = false; // Reset select key
-                ESP_LOGI(TAG, "Select on CTRL does nothing");
-            }
-            bgSprite.fillSprite(0x434343u); // Grey
-            control_screen(bgSprite);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            bgSprite.pushSprite(0, 0);
-            break;
-
-        case 3: // settings screen
-
-            bgSprite.fillSprite(0x434343u); // Grey
-            settings_screen(bgSprite, settingsPS);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            bgSprite.pushSprite(0, 0);
-            break;
 
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }
-}
