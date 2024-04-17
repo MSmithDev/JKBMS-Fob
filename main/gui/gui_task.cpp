@@ -13,7 +13,8 @@
 #include "images/splash.h"
 #include "images/mainui.h"
 #include "images/NavBar.h"
-
+#include "images/bleStatus.h"
+#include "images/bleStatusBlue.h"
 // Screens
 #include "screens/main_screen/main_screen.hpp"
 #include "screens/settings_screen/settings_screen.hpp"
@@ -63,6 +64,32 @@ const char *intToString(int value)
     return str.c_str();
 }
 
+/**
+ * Function to get the battery color based on voltage.
+ * @param voltage The current voltage.
+ * @param minVoltage The minimum voltage threshold.
+ * @param maxVoltage The maximum voltage threshold.
+ * @return The color as an unsigned integer in 0xRRGGBB format.
+ */
+unsigned int getBatteryColorNew(float voltage, float minVoltage, float maxVoltage)
+{
+    // Clamp the voltage to the range [minVoltage, maxVoltage]
+    voltage = std::max(minVoltage, std::min(maxVoltage, voltage));
+
+    // Normalize the voltage to a [0, 1] range
+    float range = maxVoltage - minVoltage;
+    float normalized = (voltage - minVoltage) / range;
+
+    // Calculate the red and green components based on the voltage
+    // Red decreases as the voltage increases, green increases as the voltage increases
+    uint8_t red = static_cast<uint8_t>((1 - normalized) * 255);
+    uint8_t green = static_cast<uint8_t>(normalized * 255);
+
+    // Combine the components into a single unsigned integer
+    // Format: 0xRRGGBB
+    return (red << 16) | (green << 8);
+}
+
 unsigned int getBatteryColor(float voltage)
 {
     // Clamp the voltage to the range [68.00, 84.00]
@@ -109,6 +136,49 @@ void navBar(LGFX_Sprite bgSprite, bool UpKey, bool SelectKey, bool DownKey)
     bgSprite.pushImage(0, 0, 30, 135, image_data_NavBar, (uint16_t)0x07E0); // Add NavBar with transparent color
 }
 
+//Fob battery widget
+void fobBatteryWidget(LGFX_Sprite canvas,int x, int y, int w, int h, int percentage)
+{
+    int batteryRadius = 5;
+    //draw battery outline
+    canvas.drawRoundRect(x, y, w, h, batteryRadius, TFT_WHITE);
+    //draw positive terminal
+    canvas.fillRoundRect(x+w-1, y+(h/2)-4, 4, 8, 3,TFT_WHITE);
+
+    //draw battery level
+    canvas.fillRoundRect(x+1, y+1, (w-2)*(percentage/100.0), h-2, 5, getBatteryColorNew(percentage, 0, 100));
+    
+
+
+}
+
+
+//Status Bar
+void statusBar(LGFX_Sprite canvas, GlobalState &globalState, bool isConnected)
+{
+    int bleStatusX = 35;
+    int bleStatusY = 0;
+
+    // Black Bar
+    canvas.fillRect(30, 0, 210, 20, TFT_BLACK);
+
+    // BLE Status
+    canvas.fillRect(bleStatusX+5,bleStatusY+2,10,16, isConnected ? TFT_GREEN : TFT_RED);
+    canvas.pushImage(bleStatusX,bleStatusY,20,20, image_data_bleStatusBlue, (uint16_t)0x07E0); // Add BLE Status with transparent color
+
+    //placeholder for icons
+    canvas.setTextColor(TFT_WHITE);
+    canvas.setTextSize(2);
+    canvas.drawString("[] [] []", 60, 3);
+
+    // Fob Battery
+    fobBatteryWidget(canvas, 190, 0, 40, 20, 10);
+
+    //Fob battery
+    //TODO: Get battery level from I2C and display icon based on battery level
+    
+}
+
 // Queue for sending data to the GUI
 
 extern QueueHandle_t ble_data_queue;
@@ -144,7 +214,7 @@ void gui_task(void *pvParameters)
     // Splash Screen
     display.pushImage(0, 0, 240, 135, image_data_splash);
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     // Create a sprite for the background
     LGFX_Sprite bgSprite(&display);
@@ -244,19 +314,9 @@ void gui_task(void *pvParameters)
             }
 
             main_screen(bgSprite, &testRecv);
-            if(bleConnectionVal)
-            {
-                // display BLE Connection
-                bgSprite.setTextColor(TFT_GREEN, TFT_BLACK);
-                bgSprite.drawString("BLE Connected", 30, 10);
-            }
-            else
-            {
-                // display BLE Connection
-                bgSprite.setTextColor(TFT_RED, TFT_BLACK);
-                bgSprite.drawString("BLE Disconnected", 30, 10);
-            }
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            statusBar(bgSprite, globalState, bleConnectionVal);
+
             bgSprite.pushSprite(0, 0);
             break;
 
