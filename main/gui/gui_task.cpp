@@ -4,7 +4,7 @@
 #include "LGFX_Config.hpp"
 #include "freertos/queue.h"
 #include "esp_log.h"
-
+#include "driver/i2c.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -25,9 +25,50 @@
 #include "helpers/jkbms.h"
 #include "helpers/page_states.hpp"
 
+static const char *TAG = "GUI_Task";
+
+// I2C Configuration
+#define I2C_MASTER_SCL_IO           4           /*!< GPIO number used for I2C master clock */
+#define I2C_MASTER_SDA_IO           3           /*!< GPIO number used for I2C master data  */
+#define I2C_MASTER_NUM              I2C_NUM_0   /*!< I2C port number */
+#define I2C_MASTER_FREQ_HZ          100000      /*!< I2C master clock frequency */
+#define I2C_MASTER_TX_BUF_DISABLE   0           /*!< I2C master doesn't need buffer */
+#define I2C_MASTER_RX_BUF_DISABLE   0           /*!< I2C master doesn't need buffer */
+#define MAX17048_SENSOR_ADDR        0x36        /*!< Slave address of the MAX17048 sensor */
+
+/**
+ * @brief Initialize the I2C master interface
+ */
+static esp_err_t i2c_master_init(void) {
+    i2c_config_t conf = {};
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = I2C_MASTER_SDA_IO;
+    conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.scl_io_num = I2C_MASTER_SCL_IO;
+    conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+    conf.master.clk_speed = I2C_MASTER_FREQ_HZ;  // This is the correct way to assign
+    // conf.clk_flags = 0; // Optionally set clock flags if needed
+
+    esp_err_t err = i2c_param_config(I2C_MASTER_NUM, &conf);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "I2C config failed with error %d", err);
+        return err;
+    }
+
+    err = i2c_driver_install(I2C_MASTER_NUM, conf.mode,
+                             I2C_MASTER_TX_BUF_DISABLE, I2C_MASTER_RX_BUF_DISABLE, 0);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "I2C driver installation failed with error %d", err);
+        return err;
+    }
+
+    ESP_LOGI(TAG, "I2C initialized successfully");
+    return ESP_OK;
+}
+
 LGFX display; // Assuming display is defined elsewhere
 
-static const char *TAG = "GUI_Task";
+
 
 extern QueueHandle_t gui_data_queue;
 extern QueueHandle_t bleConnection;
@@ -44,6 +85,38 @@ mainScreenState mainSS;
 settingsPageState settingsPS;
 controlPageState controlPS;
 infoPageState infoPS;
+
+
+
+/**
+ * @brief Read a register from the MAX17048
+ * 
+ * @param reg_addr Address of the register to read
+ * @param data Pointer to variable where read data will be stored
+ * @return esp_err_t Result of the read operation
+ */
+static esp_err_t max17048_read_register(uint8_t reg_addr, uint16_t *data)
+{
+    uint8_t buf[2];
+    esp_err_t ret;
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (MAX17048_SENSOR_ADDR << 1) | I2C_MASTER_WRITE, true);
+    i2c_master_write_byte(cmd, reg_addr, true);
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (MAX17048_SENSOR_ADDR << 1) | I2C_MASTER_READ, true);
+    i2c_master_read(cmd, buf, 2, I2C_MASTER_LAST_NACK);
+    i2c_master_stop(cmd);
+    ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+
+    if (ret == ESP_OK) {
+        *data = (buf[0] << 8) | buf[1];
+    }
+    return ret;
+}
+
 
 const char *floatToString(float value)
 {
@@ -148,7 +221,12 @@ void fobBatteryWidget(LGFX_Sprite canvas,int x, int y, int w, int h, int percent
     //draw battery level
     canvas.fillRoundRect(x+1, y+1, (w-2)*(percentage/100.0), h-2, 5, getBatteryColorNew(percentage, 0, 100));
     
-
+    uint16_t test;
+    max17048_read_register(0x04, &test);
+    int val = test % 256;
+    //log value
+    ESP_LOGI(TAG, "Battery Level Raw: %i", test);
+    ESP_LOGI(TAG, "Battery Level: %i", val);
 
 }
 
@@ -186,7 +264,16 @@ extern QueueHandle_t bleScan_data_queue;
 
 void gui_task(void *pvParameters)
 {
+
+    // Initialize the I2C master interface
+    esp_err_t ret = i2c_master_init();
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize I2C: %s", esp_err_to_name(ret));
+        return;  // Return early if I2C init fails
+    }
+
     ble_data_queue = xQueueCreate(5, sizeof(struct BLEControl));
+
 
     JKBMSData testRecv;
     mainSS.selectedOption = 0;
