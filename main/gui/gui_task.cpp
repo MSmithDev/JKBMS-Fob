@@ -155,7 +155,6 @@ void gui_task(void *pvParameters)
     bool lasUPKeyState = true;
     bool lasDownKeyState = true;
     bool lasSelectKeyState = true;
-    
 
     globalState.CurrentPage = 0; // Main Page
 
@@ -166,24 +165,21 @@ void gui_task(void *pvParameters)
     while (1)
     {
 
-        //if (xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5))
+        // if (xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5))
         //{
-        //    ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
-        //}
+        //     ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
+        // }
 
-        //handle ble queue
-        if(xQueueReceive(bleScan_data_queue, &(bleScan), (TickType_t)5))
+        // handle ble queue
+        if (xQueueReceive(bleScan_data_queue, &(bleScan), (TickType_t)5))
         {
-            for(int i = 0; i < 20; i++)
+            for (int i = 0; i < 20; i++)
             {
-                
+
                 ESP_LOGI(TAG, "Got data from BLE queue! Device Name: %s, RSSI: %d", bleScan[i].deviceName, bleScan[i].rssi);
-            
             }
-            
         }
 
-  
 #include <stdbool.h>
 
         // Page States
@@ -193,37 +189,35 @@ void gui_task(void *pvParameters)
         bool curDownKeyState = gpio_get_level(GPIO_NUM_2) == 1;
         bool curSelectKeyState = gpio_get_level(GPIO_NUM_1) == 0;
 
-       
+        // logic for UP key
+        if (!lasUPKeyState && curUPKeyState)
+        {
+            globalState.upKey = true;
+        }
+        else
+        {
+            globalState.upKey = false;
+        }
 
+        // logic for Down key
+        if (!lasDownKeyState && curDownKeyState)
+        {
+            globalState.downKey = true;
+        }
+        else
+        {
+            globalState.downKey = false;
+        }
 
-            // logic for UP key
-            if (!lasUPKeyState && curUPKeyState)
-            {
-                globalState.upKey = true;
-            }
-            else{
-                globalState.upKey = false;
-            }
-
-            // logic for Down key
-            if (!lasDownKeyState && curDownKeyState)
-            {
-                globalState.downKey = true;
-            }
-            else{
-                globalState.downKey = false;
-            }
-
-            // logic for Select key (inverted?)
-            if (!lasSelectKeyState && curSelectKeyState)
-            {
-                globalState.selectKey = false;
-            }
-            else{
-                globalState.selectKey = true;
-            }
- 
-
+        // logic for Select key (inverted?)
+        if (!lasSelectKeyState && curSelectKeyState)
+        {
+            globalState.selectKey = true;
+        }
+        else
+        {
+            globalState.selectKey = false;
+        }
 
         // Update last state to current state
         lasUPKeyState = curUPKeyState;
@@ -233,15 +227,121 @@ void gui_task(void *pvParameters)
         bgSprite.setSwapBytes(true);
         bgSprite.setColorDepth(16);
 
-            switch(globalState.CurrentPage) {
-                case 0:
-                    
-                    main_screen(bgSprite, &testRecv);
-                    navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-                    bgSprite.pushSprite(0, 0);
-                    break;
+        switch (globalState.CurrentPage)
+        {
+
+        case 0: // Main Page
+
+            // Update the current page based on the button press
+            if (globalState.upKey)
+            {
+                globalState.CurrentPage--;
+                if (globalState.CurrentPage < 0)
+                {
+                    globalState.CurrentPage = 3;
+                }
+            }
+            if (globalState.downKey)
+            {
+                globalState.CurrentPage++;
+                if (globalState.CurrentPage > 3)
+                {
+                    globalState.CurrentPage = 0;
+                }
             }
 
-            vTaskDelay(10 / portTICK_PERIOD_MS);
+            main_screen(bgSprite, &testRecv);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
+            break;
+
+        case 1: // Info Page
+
+            // Update the current page based on the button press
+            if (globalState.upKey)
+            {
+                globalState.CurrentPage--;
+                if (globalState.CurrentPage < 0)
+                {
+                    globalState.CurrentPage = 3;
+                }
+            }
+            if (globalState.downKey)
+            {
+                globalState.CurrentPage++;
+                if (globalState.CurrentPage > 3)
+                {
+                    globalState.CurrentPage = 0;
+                }
+            }
+
+            info_screen(bgSprite);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
+            break;
+
+        case 2: // Control Page
+
+            // Update the current page based on the button press
+            if (globalState.upKey)
+            {
+                globalState.CurrentPage--;
+                if (globalState.CurrentPage < 0)
+                {
+                    globalState.CurrentPage = 0;
+                }
+            }
+            if (globalState.downKey)
+            {
+                globalState.CurrentPage++;
+                if (globalState.CurrentPage > 3)
+                {
+                    globalState.CurrentPage = 0;
+                }
+            }
+
+            control_screen(bgSprite);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
+            break;
+
+        case 3: // Settings Page
+
+            // Update the current page based on the button press
+            if (globalState.settingsPage == 0)
+            {
+                if (globalState.upKey)
+                {
+                    globalState.CurrentPage--;
+                    if (globalState.CurrentPage < 0)
+                    {
+                        globalState.CurrentPage = 3;
+                    }
+                }
+                if (globalState.downKey)
+                {
+                    globalState.CurrentPage++;
+                    if (globalState.CurrentPage > 3)
+                    {
+                        globalState.CurrentPage = 0;
+                    }
+                }
+            }
+
+            // if selecct pressed, go to settings page
+            // if (globalState.selectKey && !globalState.inSettings)
+            // {
+            //     globalState.inSettings = true;
+            //     globalState.settingsPage = 1;
+            //     ESP_LOGI(TAG, "Settings Page select pressed");
+            // }
+
+            settings_screen(bgSprite, globalState);
+            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            bgSprite.pushSprite(0, 0);
+            break;
         }
+
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
+}

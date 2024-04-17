@@ -9,7 +9,7 @@
 #include "helpers/page_states.hpp"
 
 
-void settings_screen(LGFX_Sprite canvas, settingsPageState);
+void settings_screen(LGFX_Sprite canvas, GlobalState &pageState);
 
 
 

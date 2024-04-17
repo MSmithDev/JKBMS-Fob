@@ -37,6 +37,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "ble_task.h"
+#include "nvs_flash.h"
 
 #include "helpers/jkbms.h"
 
@@ -52,7 +53,7 @@ struct BLEScan bleScan[20];
 QueueHandle_t bleScan_data_queue;
 
 
-static const char remote_device_name[] = "ESP_GATTS_DEMO";
+ char remote_device_name[32] = "Nothing is set";
 static bool connect    = false;
 static bool get_server = false;
 static esp_gattc_char_elem_t *char_elem_result   = NULL;
@@ -523,6 +524,48 @@ void ble_task(void* pvParameters)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+
+   nvs_handle_t my_handle;
+      esp_err_t err;
+      err = nvs_open("storage", NVS_READONLY, &my_handle);
+      if (err != ESP_OK) {
+          ESP_LOGI(TAG, "Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+      } else {
+          ESP_LOGI(TAG, "Done\n");
+      }
+
+      
+      
+      size_t required_size;
+      
+      // Read the size of the string first to allocate proper buffer
+    size_t required_len = 0;
+    err = nvs_get_str(my_handle, "bleDeviceName", NULL, &required_len);
+    if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND) {
+        nvs_close(my_handle);
+        //return err;
+    }
+
+    // Check if the actual string can fit into the provided buffer
+    if (required_len > 60) {
+        nvs_close(my_handle);
+        //return ESP_ERR_NVS_INVALID_LENGTH;
+    }
+    char* deviceName = malloc(required_len);
+
+    // Now read the actual string into the provided buffer
+    err = nvs_get_str(my_handle, "bleDeviceName", deviceName, &required_len);
+    if (err == ESP_OK) {
+        // Ensure null-termination
+        ESP_LOGI(TAG, "Read device name: %s", deviceName);
+        // Safely copy the name to the global variable
+        strncpy(remote_device_name, deviceName, sizeof(remote_device_name) - 1);
+        remote_device_name[sizeof(remote_device_name) - 1] = '\0';  // Ensure null termination
+    }
+
+      // Close NVS handle
+    nvs_close(my_handle);
+
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 

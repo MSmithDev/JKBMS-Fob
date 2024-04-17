@@ -30,7 +30,10 @@ struct controlPageState {
 struct GlobalState {
     int CurrentScreen;
     int CurrentPage;
-    int CurrentSubPage;
+    bool inSettings;
+    int settingsPage;
+    int bleSetup;
+    int bleSelectedDevice;
     bool upKey;
     bool downKey;
     bool selectKey;
