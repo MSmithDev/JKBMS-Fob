@@ -23,6 +23,7 @@ struct BLEState{
 struct BLEControl{
     bool startScan;
     bool stopScan;
+    bool isConnected;
     bool connect;
     bool disconnect;
 

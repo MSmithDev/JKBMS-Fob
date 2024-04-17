@@ -29,6 +29,7 @@ LGFX display; // Assuming display is defined elsewhere
 static const char *TAG = "GUI_Task";
 
 extern QueueHandle_t gui_data_queue;
+extern QueueHandle_t bleConnection;
 
 bool inSettings = false;
 int currentScreen = 0;
@@ -160,25 +161,17 @@ void gui_task(void *pvParameters)
 
     // BLE Scan Data
     BLEScan bleScan[20];
-
+    bool bleConnectionVal = false;
     // Main GUI Loop
     while (1)
     {
 
-        // if (xQueueReceive(gui_data_queue, &(testRecv), (TickType_t)5))
-        //{
-        //     ESP_LOGI(TAG, "Got data from queue! Pack (V): %f Pack (W): %f, Cell 0 (V): %f", testRecv.packVoltage, testRecv.packPower, testRecv.cellVoltages[0]);
-        // }
-
-        // handle ble queue
-        if (xQueueReceive(bleScan_data_queue, &(bleScan), (TickType_t)5))
+         if (xQueueReceive(bleConnection, &bleConnectionVal, (TickType_t)5))
         {
-            for (int i = 0; i < 20; i++)
-            {
+             ESP_LOGI(TAG, "Got BLE Connection Data %i", bleConnectionVal);
+         }
 
-                ESP_LOGI(TAG, "Got data from BLE queue! Device Name: %s, RSSI: %d", bleScan[i].deviceName, bleScan[i].rssi);
-            }
-        }
+        
 
 #include <stdbool.h>
 
@@ -251,6 +244,18 @@ void gui_task(void *pvParameters)
             }
 
             main_screen(bgSprite, &testRecv);
+            if(bleConnectionVal)
+            {
+                // display BLE Connection
+                bgSprite.setTextColor(TFT_GREEN, TFT_BLACK);
+                bgSprite.drawString("BLE Connected", 30, 10);
+            }
+            else
+            {
+                // display BLE Connection
+                bgSprite.setTextColor(TFT_RED, TFT_BLACK);
+                bgSprite.drawString("BLE Disconnected", 30, 10);
+            }
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
             bgSprite.pushSprite(0, 0);
             break;

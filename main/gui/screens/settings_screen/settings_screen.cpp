@@ -41,6 +41,7 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
             globalState.CurrentScreen = 3;
             globalState.settingsPage = 1;
             globalState.bleSetup = 1;
+            globalState.selectKey = false;
         }
         
         if(globalState.bleSetup == 1) {
@@ -101,6 +102,9 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
                 
                 }
                 ESP_LOGI(TAG, "Selected Device: %s Saved!", bleScan[globalState.bleSelectedDevice].deviceName);
+                //restarting
+                esp_restart();
+                
             }
         }
         

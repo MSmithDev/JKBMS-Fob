@@ -51,6 +51,7 @@
 
 struct BLEScan bleScan[20];
 QueueHandle_t bleScan_data_queue;
+QueueHandle_t bleConnection;
 
 
  char remote_device_name[32] = "Nothing is set";
@@ -507,6 +508,11 @@ QueueHandle_t ble_data_queue;
 
 void ble_task(void* pvParameters)
 {
+   bool isConnected = connect;
+   
+    // Initialize the BLE scan queue
+   bleConnection = xQueueCreate(5, sizeof(isConnected));
+
     struct BLEControl bleControl;
     bleScan_data_queue = xQueueCreate(5, sizeof(bleScan));
     // Initialize the BLE data queue
@@ -644,7 +650,10 @@ void ble_task(void* pvParameters)
 
         if(connect == true && !sentPollCmd){
             sentPollCmd = true;
-        
+            if(xQueueSend(bleConnection, &connect, portMAX_DELAY) != pdPASS)
+            {
+                ESP_LOGI(TAG, "Failed to send connection state to queue");
+            }
             
 
             uint8_t getInfo[] = {0xaa, 0x55, 0x90, 0xeb, 0x97, 0x00, 0x87, 0x8c, 0xb3, 0xd1, 0x97, 0x18, 0x3e, 0x84, 0x4a, 0xac, 0xc0, 0xa5, 0xf4, 0x68};
