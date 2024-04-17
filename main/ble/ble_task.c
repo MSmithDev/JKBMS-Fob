@@ -50,8 +50,10 @@
 
 
 struct BLEScan bleScan[20];
+
 QueueHandle_t bleScan_data_queue;
 QueueHandle_t bleConnection;
+QueueHandle_t jkbms_data_queue;
 
 
  char remote_device_name[32] = "Nothing is set";
@@ -289,6 +291,26 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             ESP_LOGI(TAG, "ESP_GATTC_NOTIFY_EVT, receive indicate value:");
         }
         esp_log_buffer_hex(TAG, p_data->notify.value, p_data->notify.value_len);
+
+        struct JKBMSData jkbmsData;
+        //TODO: Decode JKBMS data here and send queue to GUI
+
+
+
+
+
+
+        //END TODO
+
+        //send data to queue
+        jkbmsData.packVoltage = 83.88;
+        if(xQueueSend(jkbms_data_queue, &(jkbmsData), portMAX_DELAY) != pdPASS)
+        {
+            ESP_LOGI(TAG, "Failed to send JKBMS data to queue");
+        }
+
+
+
         break;
     case ESP_GATTC_WRITE_DESCR_EVT:
         if (p_data->write.status != ESP_GATT_OK){
@@ -523,6 +545,8 @@ void ble_task(void* pvParameters)
 
     ble_data_queue = xQueueCreate(5, sizeof(bleControl));
 
+    jkbms_data_queue = xQueueCreate(5, sizeof(struct JKBMSData));
+
 // Initialize NVS.
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -540,9 +564,6 @@ void ble_task(void* pvParameters)
           ESP_LOGI(TAG, "Done\n");
       }
 
-      
-      
-      size_t required_size;
       
       // Read the size of the string first to allocate proper buffer
     size_t required_len = 0;

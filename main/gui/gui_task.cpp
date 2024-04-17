@@ -333,13 +333,6 @@ void gui_task(void *pvParameters)
                 }
             }
 
-            // if selecct pressed, go to settings page
-            // if (globalState.selectKey && !globalState.inSettings)
-            // {
-            //     globalState.inSettings = true;
-            //     globalState.settingsPage = 1;
-            //     ESP_LOGI(TAG, "Settings Page select pressed");
-            // }
 
             settings_screen(bgSprite, globalState);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
