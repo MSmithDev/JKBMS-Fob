@@ -37,6 +37,7 @@ struct GlobalState {
     bool upKey;
     bool downKey;
     bool selectKey;
+    int batteryPercentage;
 };
 
 #endif // PAGE_STATES_HPP
