@@ -118,14 +118,7 @@ infoPageState infoPS;
 
 
 
-const char *floatToString(float value)
-{
-    static std::string str; // Made static to prolong its lifetime beyond the function scope
-    std::ostringstream out;
-    out << std::fixed << std::setprecision(2) << value;
-    str = out.str();
-    return str.c_str();
-}
+
 
 // func to convert int to string
 const char *intToString(int value)
@@ -226,11 +219,11 @@ void fobBatteryWidget(LGFX_Sprite canvas,int x, int y, int w, int h, int percent
 
 
 //Status Bar
-void statusBar(LGFX_Sprite canvas, GlobalState &globalState, bool isConnected)
+void statusBar(LGFX_Sprite canvas, GlobalState &globalState)
 {
     int bleStatusX = 35;
     int bleStatusY = 0;
-
+    bool isConnected = globalState.bleConnected;
     // Black Bar
     canvas.fillRect(30, 0, 210, 20, TFT_BLACK);
 
@@ -306,14 +299,19 @@ void gui_task(void *pvParameters)
 
     // BLE Scan Data
     BLEScan bleScan[20];
-    bool bleConnectionVal = false;
+    
     // Main GUI Loop
     while (1)
     {
 
-         if (xQueueReceive(bleConnection, &bleConnectionVal, (TickType_t)5))
+         if (xQueueReceive(bleConnection, &globalState.bleConnected, (TickType_t)5))
         {
-             ESP_LOGI(TAG, "Got BLE Connection Data %i", bleConnectionVal);
+             ESP_LOGI(TAG, "Got BLE Connection Data %i", globalState.bleConnected);
+         }
+
+         if (xQueueReceive(gui_data_queue, &testRecv, (TickType_t)5))
+        {
+             ESP_LOGI(TAG, "Got BLE Fake Data");
          }
 
         
@@ -388,9 +386,9 @@ void gui_task(void *pvParameters)
                 }
             }
 
-            main_screen(bgSprite, &testRecv);
+            main_screen(bgSprite, globalState, &testRecv);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState, bleConnectionVal);
+            statusBar(bgSprite, globalState);
 
             bgSprite.pushSprite(0, 0);
             break;
@@ -417,7 +415,7 @@ void gui_task(void *pvParameters)
 
             info_screen(bgSprite);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState, bleConnectionVal);
+            statusBar(bgSprite, globalState);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -443,7 +441,7 @@ void gui_task(void *pvParameters)
 
             control_screen(bgSprite);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState, bleConnectionVal);
+            statusBar(bgSprite, globalState);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -473,7 +471,7 @@ void gui_task(void *pvParameters)
 
             settings_screen(bgSprite, globalState);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState, bleConnectionVal);
+            statusBar(bgSprite, globalState);
             bgSprite.pushSprite(0, 0);
             break;
         }

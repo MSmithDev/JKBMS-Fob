@@ -37,4 +37,5 @@ struct BLEScan{
 };
 
 
+
 #endif // JKBMS_H

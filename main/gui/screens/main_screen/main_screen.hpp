@@ -3,10 +3,10 @@
 
 #include "LovyanGFX.hpp"
 #include "helpers/jkbms.h"
+#include "helpers/page_states.hpp"
 
 
-
-void main_screen(LGFX_Sprite canvas, JKBMSData *data);
+void main_screen(LGFX_Sprite canvas,GlobalState globalState, JKBMSData *data);
 
 
 

@@ -34,6 +34,7 @@ struct GlobalState {
     int settingsPage;
     int bleSetup;
     int bleSelectedDevice;
+    bool bleConnected;
     bool upKey;
     bool downKey;
     bool selectKey;
