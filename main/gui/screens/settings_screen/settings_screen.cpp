@@ -9,18 +9,18 @@
 extern QueueHandle_t bleScan_data_queue;
 BLEScan bleScan[20];
 
-void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
+void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
 {
 
-    switch (globalState.settingsPage)
+    switch (globalState->settingsPage)
     {
     case 0:
-        if (globalState.selectKey)
+        if (globalState->selectKey)
         {
-            globalState.inSettings = true;
-            globalState.CurrentScreen = 3;
-            globalState.settingsPage = 1;
-            globalState.bleSetup = 0;
+            globalState->inSettings = true;
+            globalState->CurrentScreen = 3;
+            globalState->settingsPage = 1;
+            globalState->bleSetup = 0;
         }
         canvas.fillSprite(0x434343u); // Grey
         canvas.setTextColor(TFT_BLACK);
@@ -30,21 +30,21 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
 
     case 1: // BLE Setup
 
-        if (globalState.downKey && globalState.bleSetup == 0)
+        if (globalState->downKey && globalState->bleSetup == 0)
         {
-            globalState.settingsPage = 2;
+            globalState->settingsPage = 2;
         }
 
-        if (globalState.selectKey && globalState.bleSetup == 0)
+        if (globalState->selectKey && globalState->bleSetup == 0)
         {
-            globalState.inSettings = true;
-            globalState.CurrentScreen = 3;
-            globalState.settingsPage = 1;
-            globalState.bleSetup = 1;
-            globalState.selectKey = false;
+            globalState->inSettings = true;
+            globalState->CurrentScreen = 3;
+            globalState->settingsPage = 1;
+            globalState->bleSetup = 1;
+            globalState->selectKey = false;
         }
 
-        if (globalState.bleSetup == 1)
+        if (globalState->bleSetup == 1)
         {
 
             if (xQueueReceive(bleScan_data_queue, &(bleScan), (TickType_t)5))
@@ -59,38 +59,38 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
             canvas.drawString("Scanning:", 35, 0);
             canvas.setTextSize(2);
 
-            if (globalState.bleSelectedDevice == -1)
+            if (globalState->bleSelectedDevice == -1)
             {
                 canvas.setTextColor(TFT_BLACK, TFT_ORANGE);
                 canvas.drawString("...", 50, 10 + (1 * 20));
                 canvas.setTextColor(TFT_BLACK);
-                canvas.drawString(bleScan[globalState.bleSelectedDevice + 1].deviceName, 50, 10 + (2 * 20));
-                canvas.drawString(bleScan[globalState.bleSelectedDevice + 2].deviceName, 50, 10 + (3 * 20));
+                canvas.drawString(bleScan[globalState->bleSelectedDevice + 1].deviceName, 50, 10 + (2 * 20));
+                canvas.drawString(bleScan[globalState->bleSelectedDevice + 2].deviceName, 50, 10 + (3 * 20));
             }
 
-            if (globalState.bleSelectedDevice >= 0)
+            if (globalState->bleSelectedDevice >= 0)
             {
-                if (globalState.bleSelectedDevice == 0)
+                if (globalState->bleSelectedDevice == 0)
                 {
                     canvas.drawString("...", 50, 10 + (1 * 20));
                     canvas.setTextColor(TFT_BLACK, TFT_ORANGE);
-                    canvas.drawString(bleScan[globalState.bleSelectedDevice].deviceName, 50, 10 + (2 * 20));
+                    canvas.drawString(bleScan[globalState->bleSelectedDevice].deviceName, 50, 10 + (2 * 20));
                     canvas.setTextColor(TFT_BLACK);
-                    canvas.drawString(bleScan[globalState.bleSelectedDevice + 1].deviceName, 50, 10 + (3 * 20));
-                    canvas.drawString(bleScan[globalState.bleSelectedDevice + 2].deviceName, 50, 10 + (4 * 20));
+                    canvas.drawString(bleScan[globalState->bleSelectedDevice + 1].deviceName, 50, 10 + (3 * 20));
+                    canvas.drawString(bleScan[globalState->bleSelectedDevice + 2].deviceName, 50, 10 + (4 * 20));
                 }
                 else
                 {
                     canvas.drawString("...", 50, 10 + (1 * 20));
-                    canvas.drawString(bleScan[globalState.bleSelectedDevice - 1].deviceName, 50, 10 + (2 * 20));
+                    canvas.drawString(bleScan[globalState->bleSelectedDevice - 1].deviceName, 50, 10 + (2 * 20));
                     canvas.setTextColor(TFT_BLACK, TFT_ORANGE);
-                    canvas.drawString(bleScan[globalState.bleSelectedDevice].deviceName, 50, 10 + (3 * 20));
+                    canvas.drawString(bleScan[globalState->bleSelectedDevice].deviceName, 50, 10 + (3 * 20));
                     canvas.setTextColor(TFT_BLACK);
-                    canvas.drawString(bleScan[globalState.bleSelectedDevice + 1].deviceName, 50, 10 + (4 * 20));
+                    canvas.drawString(bleScan[globalState->bleSelectedDevice + 1].deviceName, 50, 10 + (4 * 20));
                 }
 
                 // Save selected device to NVS
-                if (globalState.selectKey && globalState.bleSetup == 1)
+                if (globalState->selectKey && globalState->bleSetup == 1)
                 {
                     nvs_handle_t my_handle;
                     esp_err_t err;
@@ -101,40 +101,40 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
                     }
                     else
                     {
-                        err = nvs_set_str(my_handle, "bleDeviceName", bleScan[globalState.bleSelectedDevice].deviceName);
+                        err = nvs_set_str(my_handle, "bleDeviceName", bleScan[globalState->bleSelectedDevice].deviceName);
                         if (err != ESP_OK)
                         {
                             ESP_LOGI(TAG, "Error (%s) writing!", esp_err_to_name(err));
                         }
                         nvs_close(my_handle);
                     }
-                    ESP_LOGI(TAG, "Selected Device: %s Saved!", bleScan[globalState.bleSelectedDevice].deviceName);
+                    ESP_LOGI(TAG, "Selected Device: %s Saved!", bleScan[globalState->bleSelectedDevice].deviceName);
                     // restarting
                     esp_restart();
                 }
             }
             // if -1 is selected, go back to previous page
-            if (globalState.selectKey && globalState.bleSelectedDevice == -1)
+            if (globalState->selectKey && globalState->bleSelectedDevice == -1)
             {
                 ESP_LOGI(TAG, "... Back to previous page");
-                globalState.bleSetup = 0;
-                globalState.bleSelectedDevice = 0;
+                globalState->bleSetup = 0;
+                globalState->bleSelectedDevice = 0;
             }
 
-            if (globalState.downKey)
+            if (globalState->downKey)
             {
-                globalState.bleSelectedDevice++;
-                if (globalState.bleSelectedDevice > 20)
+                globalState->bleSelectedDevice++;
+                if (globalState->bleSelectedDevice > 20)
                 {
-                    globalState.bleSelectedDevice = 20;
+                    globalState->bleSelectedDevice = 20;
                 }
             }
-            if (globalState.upKey)
+            if (globalState->upKey)
             {
-                globalState.bleSelectedDevice--;
-                if (globalState.bleSelectedDevice < -1)
+                globalState->bleSelectedDevice--;
+                if (globalState->bleSelectedDevice < -1)
                 {
-                    globalState.bleSelectedDevice = -1;
+                    globalState->bleSelectedDevice = -1;
                 }
             }
         }
@@ -149,13 +149,13 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
 
     case 2: // Brightness
 
-        if (globalState.downKey)
+        if (globalState->downKey)
         {
-            globalState.settingsPage = 3;
+            globalState->settingsPage = 3;
         }
-        if (globalState.upKey)
+        if (globalState->upKey)
         {
-            globalState.settingsPage = 1;
+            globalState->settingsPage = 1;
         }
 
         canvas.fillSprite(0x434343u); // Grey
@@ -166,13 +166,13 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
 
     case 3: // Sleep Modes
 
-        if (globalState.downKey)
+        if (globalState->downKey)
         {
-            globalState.settingsPage = 4;
+            globalState->settingsPage = 4;
         }
-        if (globalState.upKey)
+        if (globalState->upKey)
         {
-            globalState.settingsPage = 2;
+            globalState->settingsPage = 2;
         }
 
         canvas.fillSprite(0x434343u); // Grey
@@ -183,21 +183,21 @@ void settings_screen(LGFX_Sprite canvas, GlobalState &globalState)
 
     case 4: // Back
 
-        if (globalState.downKey)
+        if (globalState->downKey)
         {
-            globalState.settingsPage = 4;
+            globalState->settingsPage = 4;
         }
-        if (globalState.upKey)
+        if (globalState->upKey)
         {
-            globalState.settingsPage = 3;
+            globalState->settingsPage = 3;
         }
 
         // if selected, go back to main screen
-        if (globalState.selectKey)
+        if (globalState->selectKey)
         {
-            globalState.inSettings = false;
-            globalState.CurrentScreen = 3;
-            globalState.settingsPage = 0;
+            globalState->inSettings = false;
+            globalState->CurrentScreen = 3;
+            globalState->settingsPage = 0;
         }
 
         canvas.fillSprite(0x434343u); // Grey

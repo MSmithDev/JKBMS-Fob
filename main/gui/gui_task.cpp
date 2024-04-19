@@ -133,11 +133,11 @@ void fobBatteryWidget(LGFX_Sprite canvas,int x, int y, int w, int h, int percent
 
 
 //Status Bar
-void statusBar(LGFX_Sprite canvas, GlobalState &globalState)
+void statusBar(LGFX_Sprite canvas, GlobalState *globalState)
 {
     int bleStatusX = 35;
     int bleStatusY = 0;
-    bool isConnected = globalState.bleConnected;
+    bool isConnected = globalState->bleConnected;
     // Black Bar
     canvas.fillRect(30, 0, 210, 20, TFT_BLACK);
 
@@ -151,7 +151,7 @@ void statusBar(LGFX_Sprite canvas, GlobalState &globalState)
     canvas.drawString("[] [] []", 60, 3);
 
     // Fob Battery
-    fobBatteryWidget(canvas, 190, 0, 40, 20, globalState.batteryPercentage);
+    fobBatteryWidget(canvas, 190, 0, 40, 20, globalState->batteryPercentage);
     
 }
 
@@ -298,9 +298,9 @@ void gui_task(void *pvParameters)
                 }
             }
 
-            main_screen(bgSprite, globalState, &testRecv);
+            main_screen(bgSprite, &globalState, &testRecv);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState);
+            statusBar(bgSprite, &globalState);
 
             bgSprite.pushSprite(0, 0);
             break;
@@ -327,7 +327,7 @@ void gui_task(void *pvParameters)
 
             info_screen(bgSprite);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState);
+            statusBar(bgSprite, &globalState);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -353,7 +353,7 @@ void gui_task(void *pvParameters)
 
             control_screen(bgSprite);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState);
+            statusBar(bgSprite, &globalState);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -381,9 +381,9 @@ void gui_task(void *pvParameters)
             }
 
 
-            settings_screen(bgSprite, globalState);
+            settings_screen(bgSprite, &globalState);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, globalState);
+            statusBar(bgSprite, &globalState);
             bgSprite.pushSprite(0, 0);
             break;
         }

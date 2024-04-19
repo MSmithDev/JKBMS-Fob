@@ -4,9 +4,9 @@
 
 
 
-void main_screen(LGFX_Sprite canvas, GlobalState globalState, JKBMSData *jkData){
+void main_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData){
 
-                bool bleConnected = globalState.bleConnected;
+                bool bleConnected = globalState->bleConnected;
 
                 //If BLE is not connected, display a message and searching indicator
                 if(!bleConnected) {

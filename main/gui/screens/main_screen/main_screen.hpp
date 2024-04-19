@@ -6,7 +6,7 @@
 #include "helpers/page_states.hpp"
 
 
-void main_screen(LGFX_Sprite canvas,GlobalState globalState, JKBMSData *data);
+void main_screen(LGFX_Sprite canvas,GlobalState *globalState, JKBMSData *data);
 
 
 
