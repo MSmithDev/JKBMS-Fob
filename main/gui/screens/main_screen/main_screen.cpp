@@ -1,15 +1,8 @@
 #include "main_screen.hpp"
-#include <iostream>
-#include <string>
-#include <sstream>
 
-// Function to convert float to string with specified precision
-std::string floatToString(float num, int precision) {
-    std::ostringstream out;
-    out.precision(precision);  // Set the decimal precision
-    out << std::fixed << num;  // Ensure fixed point notation for float
-    return out.str();
-}
+#include "helpers/utils.hpp"
+
+
 
 void main_screen(LGFX_Sprite canvas, GlobalState globalState, JKBMSData *jkData){
 
