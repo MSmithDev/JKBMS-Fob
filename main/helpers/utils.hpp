@@ -5,6 +5,20 @@
 #include <string>
 #include <sstream>
 
+struct GlobalState {
+    int CurrentScreen;
+    int CurrentPage;
+    bool inSettings;
+    int settingsPage;
+    int bleSetup;
+    int bleSelectedDevice;
+    bool bleConnected;
+    bool upKey;
+    bool downKey;
+    bool selectKey;
+    int batteryPercentage;
+};
+
 // Function to convert float to string with specified precision
 std::string floatToString(float num, int precision);
 

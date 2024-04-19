@@ -23,7 +23,6 @@
 static const char *TAG = "GUI_Task";
 // JKBMS Helper
 #include "helpers/jkbms.h"
-#include "helpers/page_states.hpp"
 #include "helpers/utils.hpp"
 
 //i2c battery monitor
