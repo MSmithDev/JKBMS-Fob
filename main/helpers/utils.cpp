@@ -59,3 +59,20 @@ unsigned int getBatteryColor(float voltage, float minVoltage, float maxVoltage)
     return (red << 16) | (green << 8);
 }
 
+// Function to generate a random float in the range [min_val, max_val]
+float randFloat(float min_val, float max_val)
+{
+    // Initialize the random number generator only once
+    static int seed_initialized = 0;
+    if (!seed_initialized)
+    {
+        srand(time(NULL)); // Use current time as seed for random generator
+        seed_initialized = 1;
+    }
+
+    // Generate a random float in the range [0, 1]
+    float scale = rand() / (float)RAND_MAX;
+
+    // Adjust the scale to the desired range and return
+    return min_val + scale * (max_val - min_val);
+}

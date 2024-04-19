@@ -1,3 +1,6 @@
+#ifndef UTILS_HPP
+#define UTILS_HPP
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -13,3 +16,8 @@ int map_float_to_int(float input);
 
 // Function to get the battery color based on voltage.
 unsigned int getBatteryColor(float voltage, float minVoltage, float maxVoltage);
+
+// Function to generate a random float value in the range [min, max]
+float randFloat(float min, float max);
+
+#endif // UTILS_HPP

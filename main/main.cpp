@@ -10,6 +10,7 @@
 
 
 #include "helpers/jkbms.h"
+#include "helpers/utils.hpp"
 
 extern "C" {
     #include "ble/ble_task.h"
@@ -20,23 +21,7 @@ static const char *TAG = "Main";
 
 QueueHandle_t gui_data_queue;
 
-// Function to generate a random float in the range [min_val, max_val]
-float randFloat(float min_val, float max_val)
-{
-    // Initialize the random number generator only once
-    static int seed_initialized = 0;
-    if (!seed_initialized)
-    {
-        srand(time(NULL)); // Use current time as seed for random generator
-        seed_initialized = 1;
-    }
 
-    // Generate a random float in the range [0, 1]
-    float scale = rand() / (float)RAND_MAX;
-
-    // Adjust the scale to the desired range and return
-    return min_val + scale * (max_val - min_val);
-}
 
 void blesenderTask(void *parameter)
 {
@@ -48,10 +33,10 @@ void blesenderTask(void *parameter)
     while (1)
     {
         // Make dummy data
-        test.avgCellVoltage = 4.0;
+        test.avgCellVoltage = randFloat(3.0, 4.2);
         test.packVoltage = randFloat(68.0, 84.0);
-        test.packPower = 0.0;
-        test.deltaCellVoltage = 0.05;
+        test.packPower = randFloat(0.0, 3000.0);
+        test.deltaCellVoltage = randFloat(0.0, 0.1);
 
         // cell voltages test data is only 20s
         for (int i = 0; i < 24; i++)
