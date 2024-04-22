@@ -62,15 +62,15 @@ void getOnboardBatteryInfo(void *pvParameters)
         r = max1704x_get_voltage(&dev, &voltage);
 
         if (r == ESP_OK) {
-            ESP_LOGI(TAG, "Voltage: %.2fV", voltage);
+            //ESP_LOGI(TAG, "Voltage: %.2fV", voltage);
             
         }
         else
-            ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
+            //ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
 
         r = max1704x_get_soc(&dev, &soc_percent);
         if (r == ESP_OK) {
-            ESP_LOGI(TAG, "SOC: %.2f%%", soc_percent);
+            //ESP_LOGI(TAG, "SOC: %.2f%%", soc_percent);
             globalState.batteryPercentage = soc_percent;
         }
         else
@@ -78,7 +78,7 @@ void getOnboardBatteryInfo(void *pvParameters)
 
         r = max1704x_get_crate(&dev, &rate_change);
         if (r == ESP_OK) {
-            ESP_LOGI(TAG, "SOC rate of change: %.2f%%", rate_change);
+            //ESP_LOGI(TAG, "SOC rate of change: %.2f%%", rate_change);
         }
         else
             ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
@@ -97,6 +97,7 @@ void getOnboardBatteryInfo(void *pvParameters)
 LGFX display; // Assuming display is defined elsewhere
 
 extern QueueHandle_t gui_data_queue;
+extern QueueHandle_t jkbms_data_queue;
 extern QueueHandle_t bleConnection;
 
 // Widgets
@@ -220,9 +221,9 @@ void gui_task(void *pvParameters)
              ESP_LOGI(TAG, "Got BLE Connection Data %i", globalState.bleConnected);
          }
 
-         if (xQueueReceive(gui_data_queue, &testRecv, (TickType_t)5))
+         if (xQueueReceive(jkbms_data_queue, &testRecv, (TickType_t)5))
         {
-             ESP_LOGI(TAG, "Got BLE Fake Data");
+             //ESP_LOGI(TAG, "Got BLE Fake Data");
          }
 
         
@@ -324,7 +325,7 @@ void gui_task(void *pvParameters)
                 }
             }
 
-            info_screen(bgSprite);
+            info_screen(bgSprite, &globalState, &testRecv);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
             statusBar(bgSprite, &globalState);
             bgSprite.pushSprite(0, 0);

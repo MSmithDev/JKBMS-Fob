@@ -74,7 +74,7 @@ extern "C" void app_main()
     xTaskCreatePinnedToCore(gui_task, "gui_task", 4096, NULL, 1, NULL, 1);
 
     // Create test sender
-    xTaskCreatePinnedToCore(blesenderTask, "bleSender_Task", 4096, NULL, 0, NULL, 0);
+    //xTaskCreatePinnedToCore(blesenderTask, "bleSender_Task", 4096, NULL, 0, NULL, 0);
 
     
     //BLE Task

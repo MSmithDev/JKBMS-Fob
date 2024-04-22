@@ -9,6 +9,10 @@ struct JKBMSData{
     float deltaCellVoltage;
     float cellVoltages[24];
     float cellResistances[24];
+    float currentCharge;
+    float currentDischarge;
+    float cycleAh;
+    int cycleCount;
 };
 
 struct BLEState{

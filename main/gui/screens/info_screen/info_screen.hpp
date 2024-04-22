@@ -3,11 +3,13 @@
 
 #ifndef LOVYANGFX_HPP
 #include "LovyanGFX.hpp"
+#include "helpers/jkbms.h"
+#include "helpers/utils.hpp"
 #endif
 
 
 
-void info_screen(LGFX_Sprite canvas);
+void info_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData);
 
 
 
