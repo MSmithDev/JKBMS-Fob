@@ -106,7 +106,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
             switch (*packetChunk) // 1-3 packets
             {
             case 1:
-                ESP_LOGI(TAG, "Processing packet 1 LEN[%i]", len);
+                //ESP_LOGI(TAG, "Processing packet 1 LEN[%i]", len);
                 // esp_log_buffer_hex(TAG, data, len);
 
                 // Packet 1 length should be 128
@@ -146,7 +146,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 break;
 
             case 2:
-                ESP_LOGI(TAG, "Processing packet 2 LEN[%i]", len);
+                //ESP_LOGI(TAG, "Processing packet 2 LEN[%i]", len);
                 // esp_log_buffer_hex(TAG, data, len);
                 //  Next packet should be 3
                 if (*packetChunk == 2)
@@ -156,7 +156,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 break;
 
             case 3:
-                ESP_LOGI(TAG, "Processing packet 3 LEN[%i]", len);
+                //ESP_LOGI(TAG, "Processing packet 3 LEN[%i]", len);
                 // esp_log_buffer_hex(TAG, data, len);
 
                 // Packet 3 length should be 128
