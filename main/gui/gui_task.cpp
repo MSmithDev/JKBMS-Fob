@@ -25,7 +25,7 @@ static const char *TAG = "GUI_Task";
 #include "helpers/jkbms.h"
 #include "helpers/utils.hpp"
 
-//i2c battery monitor
+// i2c battery monitor
 #include <max1704x.h>
 #define I2C_MASTER_SDA GPIO_NUM_3
 #define I2C_MASTER_SCL GPIO_NUM_4
@@ -35,14 +35,14 @@ GlobalState globalState;
 void getOnboardBatteryInfo(void *pvParameters)
 {
     esp_err_t r;
-    max1704x_t dev = {0 };
-    max1704x_config_t config = { 0 };
-    max1704x_status_t status = { 0 };
+    max1704x_t dev = {0};
+    max1704x_config_t config = {0};
+    max1704x_status_t status = {0};
     uint16_t version = 0;
     float voltage = 0;
     float soc_percent = 0;
     float rate_change = 0;
-    
+
     /**
      * Set up I2C bus to communicate with MAX1704X
      */
@@ -61,40 +61,36 @@ void getOnboardBatteryInfo(void *pvParameters)
     {
         r = max1704x_get_voltage(&dev, &voltage);
 
-        if (r == ESP_OK) {
-            //ESP_LOGI(TAG, "Voltage: %.2fV", voltage);
-            
+        if (r == ESP_OK)
+        {
+            // ESP_LOGI(TAG, "Voltage: %.2fV", voltage);
         }
         else
-            //ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
+            // ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
 
-        r = max1704x_get_soc(&dev, &soc_percent);
-        if (r == ESP_OK) {
-            //ESP_LOGI(TAG, "SOC: %.2f%%", soc_percent);
+            r = max1704x_get_soc(&dev, &soc_percent);
+        if (r == ESP_OK)
+        {
+            // ESP_LOGI(TAG, "SOC: %.2f%%", soc_percent);
             globalState.batteryPercentage = soc_percent;
         }
         else
             ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
 
         r = max1704x_get_crate(&dev, &rate_change);
-        if (r == ESP_OK) {
-            //ESP_LOGI(TAG, "SOC rate of change: %.2f%%", rate_change);
+        if (r == ESP_OK)
+        {
+            // ESP_LOGI(TAG, "SOC rate of change: %.2f%%", rate_change);
         }
         else
             ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
-        
+
         printf("\n");
         vTaskDelay(pdMS_TO_TICKS(5000));
     }
 }
 
-
-
-
-
-
-
-LGFX display; // Assuming display is defined elsewhere
+LGFX display;
 
 extern QueueHandle_t jkbms_data_queue;
 extern QueueHandle_t bleConnection;
@@ -115,47 +111,44 @@ void navBar(LGFX_Sprite bgSprite, bool UpKey, bool SelectKey, bool DownKey)
     bgSprite.pushImage(0, 0, 30, 135, image_data_NavBar, (uint16_t)0x07E0); // Add NavBar with transparent color
 }
 
-//Fob battery widget
-void fobBatteryWidget(LGFX_Sprite canvas,int x, int y, int w, int h, int percentage)
+// Fob battery widget
+void fobBatteryWidget(LGFX_Sprite canvas, int x, int y, int w, int h, int percentage)
 {
     int batteryRadius = 5;
-    //draw battery outline
+    // draw battery outline
     canvas.drawRoundRect(x, y, w, h, batteryRadius, TFT_WHITE);
-    //draw positive terminal
-    canvas.fillRoundRect(x+w-1, y+(h/2)-4, 4, 8, 3,TFT_WHITE);
 
-    //draw battery level
-    canvas.fillRoundRect(x+1, y+1, (w-2)*(percentage/100.0), h-2, 5, getBatteryColor(percentage, 0, 100));
-    
+    // draw positive terminal
+    canvas.fillRoundRect(x + w - 1, y + (h / 2) - 4, 4, 8, 3, TFT_WHITE);
 
+    // draw battery level
+    canvas.fillRoundRect(x + 1, y + 1, (w - 2) * (percentage / 100.0), h - 2, 5, getBatteryColor(percentage, 0, 100));
 }
 
-
-//Status Bar
+// Status Bar
 void statusBar(LGFX_Sprite canvas, GlobalState *globalState)
 {
     int bleStatusX = 35;
     int bleStatusY = 0;
     bool isConnected = globalState->bleConnected;
+
     // Black Bar
     canvas.fillRect(30, 0, 210, 20, TFT_BLACK);
 
     // BLE Status
-    canvas.fillRect(bleStatusX+5,bleStatusY+2,10,16, isConnected ? TFT_GREEN : TFT_RED);
-    canvas.pushImage(bleStatusX,bleStatusY,20,20, image_data_bleStatusBlue, (uint16_t)0x07E0); // Add BLE Status with transparent color
+    canvas.fillRect(bleStatusX + 5, bleStatusY + 2, 10, 16, isConnected ? TFT_GREEN : TFT_RED);
+    canvas.pushImage(bleStatusX, bleStatusY, 20, 20, image_data_bleStatusBlue, (uint16_t)0x07E0); // Add BLE Status with transparent color
 
-    //placeholder for icons
+    // placeholder for icons
     canvas.setTextColor(TFT_WHITE);
     canvas.setTextSize(2);
     canvas.drawString("[] [] []", 60, 3);
 
     // Fob Battery
     fobBatteryWidget(canvas, 190, 0, 40, 20, globalState->batteryPercentage);
-    
 }
 
 // Queue for sending data to the GUI
-
 extern QueueHandle_t ble_data_queue;
 extern QueueHandle_t bleScan_data_queue;
 
@@ -168,9 +161,7 @@ void gui_task(void *pvParameters)
 
     ble_data_queue = xQueueCreate(5, sizeof(struct BLEControl));
 
-
-    JKBMSData testRecv;
-
+    JKBMSData jkbmsData;
 
     // Initialize 3 buttons
     // Button UP
@@ -208,35 +199,27 @@ void gui_task(void *pvParameters)
 
     globalState.CurrentPage = 0; // Main Page
 
-    // BLE Scan Data
-    BLEScan bleScan[20];
-    
     // Main GUI Loop
     while (1)
     {
 
-         if (xQueueReceive(bleConnection, &globalState.bleConnected, (TickType_t)5))
+        if (xQueueReceive(bleConnection, &globalState.bleConnected, (TickType_t)5))
         {
-             ESP_LOGI(TAG, "Got BLE Connection Data %i", globalState.bleConnected);
-         }
+            ESP_LOGI(TAG, "Got BLE Connection Data %i", globalState.bleConnected);
+        }
 
-         if (xQueueReceive(jkbms_data_queue, &testRecv, (TickType_t)5))
+        if (xQueueReceive(jkbms_data_queue, &jkbmsData, (TickType_t)5))
         {
-             //ESP_LOGI(TAG, "Got BLE Fake Data");
-         }
-
-        
+            // ESP_LOGI(TAG, "Got BLE Fake Data");
+        }
 
 #include <stdbool.h>
 
-        // Page States
-        // Settings State
-
+        // Get the current state of the buttons
         bool curUPKeyState = gpio_get_level(GPIO_NUM_0) == 0;
         bool curDownKeyState = gpio_get_level(GPIO_NUM_2) == 1;
         bool curSelectKeyState = gpio_get_level(GPIO_NUM_1) == 0;
 
-        // logic for UP key
         if (!lasUPKeyState && curUPKeyState)
         {
             globalState.upKey = true;
@@ -246,7 +229,6 @@ void gui_task(void *pvParameters)
             globalState.upKey = false;
         }
 
-        // logic for Down key
         if (!lasDownKeyState && curDownKeyState)
         {
             globalState.downKey = true;
@@ -256,7 +238,6 @@ void gui_task(void *pvParameters)
             globalState.downKey = false;
         }
 
-        // logic for Select key (inverted?)
         if (!lasSelectKeyState && curSelectKeyState)
         {
             globalState.selectKey = true;
@@ -297,7 +278,7 @@ void gui_task(void *pvParameters)
                 }
             }
 
-            main_screen(bgSprite, &globalState, &testRecv);
+            main_screen(bgSprite, &globalState, &jkbmsData);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
             statusBar(bgSprite, &globalState);
 
@@ -324,7 +305,7 @@ void gui_task(void *pvParameters)
                 }
             }
 
-            info_screen(bgSprite, &globalState, &testRecv);
+            info_screen(bgSprite, &globalState, &jkbmsData);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
             statusBar(bgSprite, &globalState);
             bgSprite.pushSprite(0, 0);
@@ -332,25 +313,30 @@ void gui_task(void *pvParameters)
 
         case 2: // Control Page
 
-            // Update the current page based on the button press
-            if (globalState.upKey)
+            
+            if (globalState.inControl == false)
             {
-                globalState.CurrentPage--;
-                if (globalState.CurrentPage < 0)
+                // Update the current page based on the button press
+                if (globalState.upKey)
                 {
-                    globalState.CurrentPage = 0;
+                    globalState.CurrentPage--;
+                    if (globalState.CurrentPage < 0)
+                    {
+                        globalState.CurrentPage = 0;
+                    }
+                }
+                if (globalState.downKey)
+                {
+                    globalState.CurrentPage++;
+                    if (globalState.CurrentPage > 3)
+                    {
+                        globalState.CurrentPage = 0;
+                    }
                 }
             }
-            if (globalState.downKey)
-            {
-                globalState.CurrentPage++;
-                if (globalState.CurrentPage > 3)
-                {
-                    globalState.CurrentPage = 0;
-                }
-            }
+            
 
-            control_screen(bgSprite);
+            control_screen(bgSprite, &globalState);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
             statusBar(bgSprite, &globalState);
             bgSprite.pushSprite(0, 0);
@@ -378,7 +364,6 @@ void gui_task(void *pvParameters)
                     }
                 }
             }
-
 
             settings_screen(bgSprite, &globalState);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
