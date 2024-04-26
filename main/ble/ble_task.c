@@ -1,20 +1,3 @@
-/*
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
-
-/****************************************************************************
- *
- * This demo showcases BLE GATT client. It can scan BLE devices and connect to one device.
- * Run the gatt_server demo, the client demo will automatically connect to the gatt_server demo.
- * Client demo will enable gatt_server's notify after connection. The two devices will then exchange
- * data.
- *
- ****************************************************************************/
-
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -200,18 +183,6 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
         default:
             break;
         }
-
-        // Decode the data
-        // jkbmsData.packVoltage = (float)((data[2] << 8) | data[3]) / 100.0;
-        // jkbmsData.packCurrent = (float)((data[4] << 8) | data[5]) / 100.0;
-        // jkbmsData.packSOC = (float)data[6];
-        // jkbmsData.packTemp = (float)data[7] - 40.0;
-        // jkbmsData.avgCellVoltage = (float)((data[8] << 8) | data[9]) / 1000.0;
-        // jkbmsData.lowCellVoltage = (float)((data[10] << 8) | data[11]) / 1000.0;
-        // jkbmsData.highCellVoltage = (float)((data[12] << 8) | data[13]) / 1000.0;
-        // jkbmsData.avgCellResistance = (float)((data[14] << 8) | data[15]) / 1000.0;
-        // jkbmsData.lowCellResistance = (float)((data[16] << 8) | data[17]) / 1000.0;
-        // jkbmsData.highCellResistance = (float)((data[18] << 8) | data[19]) / 1000.0;
     }
 }
 
@@ -444,7 +415,7 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
                     {
                         ESP_LOGE(TAG, "esp_ble_gattc_get_descr_by_char_handle error");
                     }
-                    /* Every char has only one descriptor in our 'ESP_GATTS_DEMO' demo, so we used first 'descr_elem_result' */
+    
                     if (count > 0 && descr_elem_result[0].uuid.len == ESP_UUID_LEN_16 && descr_elem_result[0].uuid.uuid.uuid16 == ESP_GATT_UUID_CHAR_CLIENT_CONFIG)
                     {
                         ret_status = esp_ble_gattc_write_char_descr(gattc_if,
@@ -473,22 +444,9 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         break;
     }
     case ESP_GATTC_NOTIFY_EVT:
-        // if (p_data->notify.is_notify)
-        //{
-        // ESP_LOGI(TAG, "ESP_GATTC_NOTIFY_EVT, receive notify value:");
-        //}
-
-        // esp_log_buffer_hex(TAG, p_data->notify.value, p_data->notify.value_len);
 
         decodeJKBMSData(p_data->notify.value, p_data->notify.value_len, &packetChunk, &packetType);
 
-        // TODO: Decode JKBMS data here and send queue to GUI
-        // send data to queue
-        // jkbmsData.packVoltage = 83.88;
-        // if(xQueueSend(jkbms_data_queue, &(jkbmsData), portMAX_DELAY) != pdPASS)
-        //{
-        //     ESP_LOGI(TAG, "Failed to send JKBMS data to queue");
-        // }
 
         break;
     case ESP_GATTC_WRITE_DESCR_EVT:
@@ -526,14 +484,7 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             break;
         }
         ESP_LOGI(TAG, "write char success ");
-        // uint8_t jkbmsPoll[] = {0xaa, 0x55, 0x90, 0xeb, 0x96, 0x00, 0x26, 0x0b, 0x02, 0xf3, 0xb3, 0xa8, 0x10, 0x62, 0xaf, 0xe8, 0xec, 0xa0, 0x3c, 0x62};
-        // esp_ble_gattc_write_char( gattc_if,
-        //                           gl_profile_tab[PROFILE_A_APP_ID].conn_id,
-        //                           gl_profile_tab[PROFILE_A_APP_ID].char_handle,
-        //                           sizeof(jkbmsPoll),
-        //                           jkbmsPoll,
-        //                           ESP_GATT_WRITE_TYPE_RSP,
-        //                           ESP_GATT_AUTH_REQ_NONE);
+
         break;
     case ESP_GATTC_DISCONNECT_EVT:
         connect = false;
@@ -553,7 +504,7 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
     {
     case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT:
     {
-        // the unit of the duration is second
+        // scan time 10s
         uint32_t duration = 10;
         esp_ble_gap_start_scanning(duration);
         break;
@@ -598,9 +549,6 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
                     if (memcmp(bleScan[i].deviceAddress, addr, 6) == 0)
                     {
                         ESP_LOGI(TAG, "%s already in list", adv_name);
-                        // bleScan[i].rssi = scan_result->scan_rst.rssi;
-                        // memcpy(bleScan[i].deviceAddress, scan_result->scan_rst.bda, 6);
-                        // memcpy(bleScan[i].deviceName, adv_name, adv_name_len);
                         break;
                     }
                     else
