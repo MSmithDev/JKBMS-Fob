@@ -96,7 +96,6 @@ void getOnboardBatteryInfo(void *pvParameters)
 
 LGFX display; // Assuming display is defined elsewhere
 
-extern QueueHandle_t gui_data_queue;
 extern QueueHandle_t jkbms_data_queue;
 extern QueueHandle_t bleConnection;
 
