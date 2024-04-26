@@ -1,14 +1,21 @@
 #ifndef CONTROL_SCREEN_HPP
 #define CONTROL_SCREEN_HPP
 
-#ifndef LOVYANGFX_HPP
 #include "LovyanGFX.hpp"
-#endif
+#include "helpers/utils.hpp"
+#include "esp_log.h"
+
+
+struct ControlOption
+{
+    std::string name;
+    bool highlighted;
+};
 
 
 
 
-void control_screen(LGFX_Sprite canvas);
+void control_screen(LGFX_Sprite canvas, GlobalState *globalState);
 
 
 
