@@ -10,6 +10,8 @@ struct GlobalState {
     int CurrentPage;
     bool inSettings;
     int settingsPage;
+    bool inControl;
+    int controlOption;
     int bleSetup;
     int bleSelectedDevice;
     bool bleConnected;

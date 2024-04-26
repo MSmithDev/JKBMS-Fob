@@ -13,6 +13,9 @@ struct JKBMSData{
     float currentDischarge;
     float cycleAh;
     int cycleCount;
+    bool canCharge;
+    bool canDischarge;
+    bool canBalance;
 };
 
 struct BLEState{
