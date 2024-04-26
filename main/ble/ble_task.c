@@ -20,24 +20,34 @@
 
 #include "helpers/jkbms.h"
 
+//Log tag
 #define TAG "BLE_Task"
+
+// JK-BMS UUIDs
 #define REMOTE_SERVICE_UUID 0xFFE0
 #define REMOTE_NOTIFY_CHAR_UUID 0xFFE1
+
+// BLE Profile
 #define PROFILE_NUM 1
 #define PROFILE_A_APP_ID 0
 #define INVALID_HANDLE 0
 
+//JK-BMS Data structs
 struct BLEScan bleScan[20];
 struct JKBMSData jkbmsData;
 
 int packetChunk = 0; // 0 = rdy, 1-3 packets
 int packetType = 0;  // 1 = info, 2 = cells
 
+// Queue handles
 QueueHandle_t bleScan_data_queue;
 QueueHandle_t bleConnection;
 QueueHandle_t jkbms_data_queue;
 
+// Auto connect device name
 char remote_device_name[32] = "JK-BD6A20S6P";
+
+//State variables
 static bool connect = false;
 static bool deviceReady = false;
 static bool get_server = false;
@@ -688,9 +698,11 @@ void ble_task(void *pvParameters)
     // Initialize the BLE scan queue
     bleConnection = xQueueCreate(5, sizeof(isConnected));
 
-    struct BLEControl bleControl;
     bleScan_data_queue = xQueueCreate(5, sizeof(bleScan));
-    // Initialize the BLE data queue
+
+    // BLE Control struct
+    struct BLEControl bleControl;
+
     bleControl.connect = false;
     bleControl.disconnect = false;
     bleControl.startScan = false;
@@ -721,7 +733,8 @@ void ble_task(void *pvParameters)
         ESP_LOGI(TAG, "Done\n");
     }
 
-    // Read the size of the string first to allocate proper buffer
+    // Try to read ble device name from NVS
+
     size_t required_len = 0;
     err = nvs_get_str(my_handle, "bleDeviceName", NULL, &required_len);
     if (err != ESP_OK && err != ESP_ERR_NVS_NOT_FOUND)
@@ -730,7 +743,7 @@ void ble_task(void *pvParameters)
         // return err;
     }
 
-    // Check if the actual string can fit into the provided buffer
+    // Check len
     if (required_len > 60)
     {
         nvs_close(my_handle);
@@ -738,7 +751,7 @@ void ble_task(void *pvParameters)
     }
     char *deviceName = malloc(required_len);
 
-    // Now read the actual string into the provided buffer
+    
     err = nvs_get_str(my_handle, "bleDeviceName", deviceName, &required_len);
     if (err == ESP_OK)
     {
@@ -827,7 +840,7 @@ void ble_task(void *pvParameters)
             }
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000)); // 2000 ms delay
+        vTaskDelay(pdMS_TO_TICKS(1000)); // 1 sec delay
 
         if (bleControl.startScan)
         {
