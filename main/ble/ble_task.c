@@ -54,8 +54,9 @@ QueueHandle_t bleScan_data_queue;
 QueueHandle_t bleConnection;
 QueueHandle_t jkbms_data_queue;
 
-char remote_device_name[32] = "Nothing is set";
+char remote_device_name[32] = "JK-BD6A20S6P";
 static bool connect = false;
+static bool deviceReady = false;
 static bool get_server = false;
 static esp_gattc_char_elem_t *char_elem_result = NULL;
 static esp_gattc_descr_elem_t *descr_elem_result = NULL;
@@ -327,6 +328,7 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
             gl_profile_tab[PROFILE_A_APP_ID].service_start_handle = p_data->search_res.start_handle;
             gl_profile_tab[PROFILE_A_APP_ID].service_end_handle = p_data->search_res.end_handle;
             ESP_LOGI(TAG, "UUID16: %x", p_data->search_res.srvc_id.uuid.uuid.uuid16);
+            deviceReady = true;
         }
         break;
     }
@@ -892,7 +894,7 @@ void ble_task(void *pvParameters)
             bleControl.stopScan = false;
         }
 
-        if (connect == true && !sentPollCmd)
+        if (connect == true && deviceReady && !sentPollCmd)
         {
             sentPollCmd = true;
             if (xQueueSend(bleConnection, &connect, portMAX_DELAY) != pdPASS)
