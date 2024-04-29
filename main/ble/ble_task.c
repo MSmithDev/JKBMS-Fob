@@ -36,6 +36,9 @@
 struct BLEScan bleScan[20];
 struct JKBMSData jkbmsData;
 
+//BLE Full Packet
+uint8_t assembledPacket[278];
+
 int packetChunk = 0; // 0 = rdy, 1-3 packets
 int packetType = 0;  // 1 = info, 2 = cells
 
@@ -65,8 +68,9 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
 {
 
     // Check if info packet in first 5 bytes
-    uint8_t expected_infopacket[5] = {0x55, 0xAA, 0xEB, 0x90, 0x03};
-    uint8_t expected_cellpacket[5] = {0x55, 0xAA, 0xEB, 0x90, 0x02};
+    uint8_t expected_infopacket[5] =        {0x55, 0xAA, 0xEB, 0x90, 0x03};
+    uint8_t expected_cellpacket[5] =        {0x55, 0xAA, 0xEB, 0x90, 0x02};
+    uint8_t expected_settingspacket2[5] =   {0x55, 0xAA, 0xEB, 0x90, 0x01};
 
     // Check if the data is a valid JKBMS packet
     if (len >= 20)
@@ -112,30 +116,9 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 // Packet 1 length should be 128
                 if (len == 128)
                 {
+                    //write 128 bytes to assembledPacket
+                    memcpy(assembledPacket, data, 128);
 
-                    // Cell voltages [6:46]
-                    for (int i = 0; i < 23; i++)
-                    {
-                        jkbmsData.cellVoltages[i] = (float)((data[7 + (i * 2)] << 8) | data[6 + (i * 2)]) / 1000.0;
-                    }
-
-                    // Cell Average Voltage [58-59]
-                    jkbmsData.avgCellVoltage = (float)((data[59] << 8) | data[58]) / 1000.0;
-
-                    // Get Cell Delta Voltage [60:61]
-                    jkbmsData.deltaCellVoltage = (float)((data[61] << 8) | data[60]) / 1000.0;
-
-                    // Get Cell Resistances [64:104]
-                    for (int i = 0; i < 23; i++)
-                    {
-                        jkbmsData.cellResistances[i] = (float)((data[65 + (i * 2)] << 8) | data[64 + (i * 2)]) / 1000.0;
-                    }
-
-                    // Get Battery Voltage [118:121]
-                    jkbmsData.packVoltage = (float)((data[121] << 24) | (data[120] << 16) | (data[119] << 8) | data[118]) / 1000.0;
-
-                    // Get Battery Power (Watts) [122:125]
-                    jkbmsData.packPower = (float)((data[125] << 24) | (data[124] << 16) | (data[123] << 8) | data[122]) / 1000.0;
                 }
 
                 // Next packet should be 2
@@ -151,6 +134,8 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 //  Next packet should be 3
                 if (*packetChunk == 2)
                 {
+                    //write 22 bytes to assembledPacket
+                    memcpy(assembledPacket + 128, data, 22);
                     *packetChunk = 3;
                 }
                 break;
@@ -162,18 +147,63 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 // Packet 3 length should be 128
                 if (len == 128)
                 {
+                    //write 128 bytes to assembledPacket
+                    memcpy(assembledPacket + 150, data, 128);
 
-                    // get cycle count r2[0:3]
-                    jkbmsData.cycleCount = (int)((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+                    
 
-                    // Get cycle Ah [4:7]
-                    jkbmsData.cycleAh = (float)((data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4]) / 1000.0;
+                    // Cell voltages [6:46]
+                    for (int i = 0; i < 23; i++)
+                    {
+                        jkbmsData.cellVoltages[i] = (float)((assembledPacket[7 + (i * 2)] << 8) | assembledPacket[6 + (i * 2)]) / 1000.0;
+                    }
 
-                    // Get Current Charge [39:40]
-                    jkbmsData.currentCharge = (float)((data[40] << 8) | data[39]) / 1000.0;
+                    // Cell Average Voltage [58-59]
+                    jkbmsData.avgCellVoltage = (float)((assembledPacket[59] << 8) | assembledPacket[58]) / 1000.0;
 
-                    // Get Current Discharge [41:42]
-                    jkbmsData.currentDischarge = (float)((data[42] << 8) | data[41]) / 1000.0;
+                    // Get Cell Delta Voltage [60:61]
+                    jkbmsData.deltaCellVoltage = (float)((assembledPacket[61] << 8) | assembledPacket[60]) / 1000.0;
+
+                    // Get Cell with Max Voltage [62]
+                    jkbmsData.maxVCell = assembledPacket[62];
+
+                    // Get Cell with Min Voltage [63]
+                    jkbmsData.minVCell = assembledPacket[63];
+
+                    // Get Cell Resistances [64:104]
+                    for (int i = 0; i < 23; i++)
+                    {
+                        jkbmsData.cellResistances[i] = (float)((assembledPacket[65 + (i * 2)] << 8) | assembledPacket[64 + (i * 2)]) / 1000.0;
+                    }
+
+                    // Get Battery Voltage [118:121]
+                    jkbmsData.packVoltage = (float)((assembledPacket[121] << 24) | (assembledPacket[120] << 16) | (assembledPacket[119] << 8) | assembledPacket[118]) / 1000.0;
+
+                    // Get Battery Power (Watts) [122:125]
+                    jkbmsData.packPower = (float)((assembledPacket[125] << 24) | (assembledPacket[124] << 16) | (assembledPacket[123] << 8) | assembledPacket[122]) / 1000.0;
+
+                    // Get Battery Current [126:129]
+                    jkbmsData.packCurrent = (float)((assembledPacket[129] << 24) | (assembledPacket[128] << 16) | (assembledPacket[127] << 8) | assembledPacket[126]) / 1000.0;
+
+                    //get balance current [138:139]
+                    jkbmsData.balanceCurrent = (float)((assembledPacket[139] << 8) | assembledPacket[138]) / 1000.0;
+
+                    //get balance action [140]
+                    jkbmsData.balanceAction = assembledPacket[140];
+
+                    // Get pack percent charged [141]
+                    jkbmsData.packPercentage = assembledPacket[141];
+
+
+                    // get cycle count r2[150:153]
+                    jkbmsData.cycleCount = (int)((assembledPacket[153] << 24) | (assembledPacket[152] << 16) | (assembledPacket[151] << 8) | assembledPacket[150]);
+
+                    // Get cycle cap Ah [154:157]
+                    jkbmsData.cycleAh = (float)((assembledPacket[157] << 24) | (assembledPacket[156] << 16) | (assembledPacket[155] << 8) | assembledPacket[154]) / 1000.0;
+
+                    // Get runtime Seconds [162:165]
+                    jkbmsData.runTimeSec = (int)((assembledPacket[165] << 24) | (assembledPacket[164] << 16) | (assembledPacket[163] << 8) | assembledPacket[162]);
+
                 }
 
                 // Next packet should be 0
@@ -690,6 +720,7 @@ static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp
 
 // Queue for sending data to the GUI
 QueueHandle_t ble_data_queue;
+QueueHandle_t ble_sender_queue;
 
 void ble_task(void *pvParameters)
 {
@@ -697,11 +728,12 @@ void ble_task(void *pvParameters)
 
     // Initialize the BLE scan queue
     bleConnection = xQueueCreate(5, sizeof(isConnected));
-
+    ble_sender_queue = xQueueCreate(5, sizeof(struct BLECmd));
     bleScan_data_queue = xQueueCreate(5, sizeof(bleScan));
 
     // BLE Control struct
     struct BLEControl bleControl;
+    struct BLECmd BLEcmd;
 
     bleControl.connect = false;
     bleControl.disconnect = false;
@@ -832,11 +864,23 @@ void ble_task(void *pvParameters)
             ESP_LOGI(TAG, "New BLEControl State: StartScan=%i, StopScan=%i, Connect=%i, Disconnect=%i", bleControl.startScan, bleControl.stopScan, bleControl.connect, bleControl.disconnect);
         }
 
-        if (connect)
+        if (connect && deviceReady)
         {
             if (xQueueSend(jkbms_data_queue, &jkbmsData, portMAX_DELAY) != pdPASS)
             {
                 ESP_LOGI(TAG, "Failed to send JKBMS data to queue");
+            }
+        
+            if (xQueueReceive(ble_sender_queue, &BLEcmd, (TickType_t)5))
+            {
+                ESP_LOGI(TAG, "Sending BLE Command to %x", BLEcmd.characteristic);
+                esp_ble_gattc_write_char(gatc_if,
+                                         gl_profile_tab[PROFILE_A_APP_ID].conn_id,
+                                         gl_profile_tab[PROFILE_A_APP_ID].char_handle,
+                                         sizeof(BLEcmd.data),
+                                         BLEcmd.data,
+                                         ESP_GATT_WRITE_TYPE_NO_RSP,
+                                         ESP_GATT_AUTH_REQ_NONE);
             }
         }
 
