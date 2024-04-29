@@ -21,6 +21,8 @@ struct GlobalState {
     int batteryPercentage;
 };
 
+
+
 // Function to convert float to string with specified precision
 std::string floatToString(float num, int precision);
 
