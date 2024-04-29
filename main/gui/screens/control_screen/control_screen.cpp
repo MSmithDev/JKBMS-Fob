@@ -1,6 +1,7 @@
 #include "control_screen.hpp"
 
 
+extern QueueHandle_t ble_sender_queue;
 
 #define TAG "control_screen"
 
@@ -10,6 +11,20 @@ ControlOption ctrlOption[4] = {
     {"Test2", false},
     {"Test3", false},
     {"Back", false}};
+
+
+
+void send_ble_cmd(uint16_t characteristic, uint8_t data[22])
+{
+    BLECmd cmd;
+    cmd.characteristic = characteristic;
+    for (int i = 0; i < 22; i++)
+    {
+        cmd.data[i] = data[i];
+    }
+    xQueueSend(ble_sender_queue, &cmd, portMAX_DELAY);
+}
+
 
 void control_screen(LGFX_Sprite canvas, GlobalState *globalState)
 {
@@ -79,15 +94,18 @@ void control_screen(LGFX_Sprite canvas, GlobalState *globalState)
         // Listen for select key if back is selected
         if (globalState->selectKey)
         {
+            uint8_t data[22] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
             switch (globalState->controlOption)
             {
             case 0: // Test1 command
 
                 ESP_LOGI(TAG, "Test1 command triggered");
+                
+                send_ble_cmd(0xFFE1, data);
                 break;
 
             case 1:
-
+                
                 ESP_LOGI(TAG, "Test2 command triggered");
                 break;
 
