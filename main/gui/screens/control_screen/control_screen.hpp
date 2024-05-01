@@ -17,7 +17,7 @@ struct ControlOption
 
 
 
-void control_screen(LGFX_Sprite canvas, GlobalState *globalState);
+void control_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkbmsData);
 
 
 

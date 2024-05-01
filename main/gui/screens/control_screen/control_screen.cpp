@@ -1,39 +1,32 @@
 #include "control_screen.hpp"
 
-
 extern QueueHandle_t ble_sender_queue;
 
 #define TAG "control_screen"
 
 int numOptions = 4;
 ControlOption ctrlOption[4] = {
-    {"Test1", false},
-    {"Test2", false},
-    {"Test3", false},
+    {"Toggle Charge", false},
+    {"Toggle Discharge", false},
+    {"Toggle Balance", false},
     {"Back", false}};
 
-
-
-void send_ble_cmd(uint16_t characteristic, uint8_t data[22])
+void send_ble_cmd(uint16_t characteristic, uint8_t data[20])
 {
     BLECmd cmd;
     cmd.characteristic = characteristic;
-    for (int i = 0; i < 22; i++)
-    {
-        cmd.data[i] = data[i];
-    }
+    memcpy(cmd.data, data, 20);
     xQueueSend(ble_sender_queue, &cmd, portMAX_DELAY);
 }
 
-
-void control_screen(LGFX_Sprite canvas, GlobalState *globalState)
+void control_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkbmsData)
 {
 
     // Listen for select key if not in control
     if (!globalState->inControl && globalState->selectKey && globalState->bleConnected)
     {
         globalState->inControl = true;
-        
+
         globalState->selectKey = false; // stop multiple presses
     }
 
@@ -94,24 +87,54 @@ void control_screen(LGFX_Sprite canvas, GlobalState *globalState)
         // Listen for select key if back is selected
         if (globalState->selectKey)
         {
-            uint8_t data[22] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
             switch (globalState->controlOption)
             {
             case 0: // Test1 command
 
-                ESP_LOGI(TAG, "Test1 command triggered");
-                
-                send_ble_cmd(0xFFE1, data);
+                ESP_LOGI(TAG, "Toggle charge command triggered");
+
+                // Toggle charge enable/disable based on current state
+                if (jkbmsData->canCharge)
+                {
+                    send_ble_cmd(0xFFE1, jkbmsCommands.disableCharge);
+                }
+                else
+                {
+                    send_ble_cmd(0xFFE1, jkbmsCommands.enableCharge);
+                }
+
                 break;
 
             case 1:
-                
-                ESP_LOGI(TAG, "Test2 command triggered");
+
+                ESP_LOGI(TAG, "Toggle discharge command triggered");
+
+                // Toggle discharge enable/disable based on current state
+                if (jkbmsData->canDischarge)
+                {
+                    send_ble_cmd(0xFFE1, jkbmsCommands.disableDischarge);
+                }
+                else
+                {
+                    send_ble_cmd(0xFFE1, jkbmsCommands.enableDischarge);
+                }
+
                 break;
 
             case 2:
 
-                ESP_LOGI(TAG, "Test3 command triggered");
+                ESP_LOGI(TAG, "Toggle balance command triggered");
+
+                // Toggle balance enable/disable based on current state
+                if (jkbmsData->canBalance)
+                {
+                    send_ble_cmd(0xFFE1, jkbmsCommands.disableBalance);
+                }
+                else
+                {
+                    send_ble_cmd(0xFFE1, jkbmsCommands.enableBalance);
+                }
+
                 break;
 
             case 3: // Back
