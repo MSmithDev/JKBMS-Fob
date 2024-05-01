@@ -33,8 +33,8 @@
 #define INVALID_HANDLE 0
 
 //JK-BMS Data structs
-struct BLEScan bleScan[20];
-struct JKBMSData jkbmsData;
+BLEScan bleScan[20];
+JKBMSData jkbmsData;
 
 //BLE Full Packet
 uint8_t assembledPacket[278];
@@ -204,6 +204,12 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                     // Get runtime Seconds [162:165]
                     jkbmsData.runTimeSec = (int)((assembledPacket[165] << 24) | (assembledPacket[164] << 16) | (assembledPacket[163] << 8) | assembledPacket[162]);
 
+
+                    //Get Charge mosfet state [166]
+                    jkbmsData.canCharge = assembledPacket[166] == 0x01 ? true : false;
+
+                    //Get Discharge mosfet state [167]
+                    jkbmsData.canDischarge = assembledPacket[167] == 0x01 ? true : false;
                 }
 
                 // Next packet should be 0
@@ -528,8 +534,14 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         break;
     case ESP_GATTC_DISCONNECT_EVT:
         connect = false;
+        
         get_server = false;
         ESP_LOGI(TAG, "ESP_GATTC_DISCONNECT_EVT, reason = %d", p_data->disconnect.reason);
+        
+        if (xQueueSend(bleConnection, &connect, portMAX_DELAY) != pdPASS)
+            {
+                ESP_LOGI(TAG, "Failed to send ble connection state to queue");
+            }
         break;
     default:
         break;
@@ -728,12 +740,12 @@ void ble_task(void *pvParameters)
 
     // Initialize the BLE scan queue
     bleConnection = xQueueCreate(5, sizeof(isConnected));
-    ble_sender_queue = xQueueCreate(5, sizeof(struct BLECmd));
+    ble_sender_queue = xQueueCreate(5, sizeof(BLECmd));
     bleScan_data_queue = xQueueCreate(5, sizeof(bleScan));
 
     // BLE Control struct
-    struct BLEControl bleControl;
-    struct BLECmd BLEcmd;
+    BLEControl bleControl;
+    BLECmd BLEcmd;
 
     bleControl.connect = false;
     bleControl.disconnect = false;
@@ -742,7 +754,7 @@ void ble_task(void *pvParameters)
 
     ble_data_queue = xQueueCreate(5, sizeof(bleControl));
 
-    jkbms_data_queue = xQueueCreate(5, sizeof(struct JKBMSData));
+    jkbms_data_queue = xQueueCreate(5, sizeof(JKBMSData));
 
     // Initialize NVS.
     esp_err_t ret = nvs_flash_init();
