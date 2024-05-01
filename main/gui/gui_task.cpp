@@ -127,7 +127,7 @@ void fobBatteryWidget(LGFX_Sprite canvas, int x, int y, int w, int h, int percen
 }
 
 // Status Bar
-void statusBar(LGFX_Sprite canvas, GlobalState *globalState)
+void statusBar(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkbmsData)
 {
     int bleStatusX = 35;
     int bleStatusY = 0;
@@ -143,7 +143,23 @@ void statusBar(LGFX_Sprite canvas, GlobalState *globalState)
     // placeholder for icons
     canvas.setTextColor(TFT_WHITE);
     canvas.setTextSize(2);
-    canvas.drawString("[] [] []", 60, 3);
+
+    //Testing
+    jkbmsData->canCharge ? canvas.setTextColor(TFT_GREEN) : canvas.setTextColor(TFT_RED);
+    canvas.drawString("[ ]", 60, 3);
+
+    jkbmsData->canDischarge ? canvas.setTextColor(TFT_GREEN) : canvas.setTextColor(TFT_RED);
+    canvas.drawString("[ ]", 100, 3);
+
+    jkbmsData->canBalance ? canvas.setTextColor(TFT_GREEN) : canvas.setTextColor(TFT_RED);
+    canvas.drawString("[ ]", 140, 3);
+
+    //labels
+    canvas.setTextColor(TFT_WHITE);
+    canvas.setTextSize(1.5);
+    canvas.drawString("C", 75, 5);
+    canvas.drawString("D", 115, 5);
+    canvas.drawString("B", 155, 5);
 
     // Fob Battery
     fobBatteryWidget(canvas, 190, 0, 40, 20, globalState->batteryPercentage);
@@ -160,7 +176,7 @@ void gui_task(void *pvParameters)
     // Create task for battery
     xTaskCreate(getOnboardBatteryInfo, "getOnboardBatteryInfo", 4096, NULL, 1, NULL);
 
-    ble_data_queue = xQueueCreate(5, sizeof(struct BLEControl));
+    ble_data_queue = xQueueCreate(5, sizeof(BLEControl));
 
     JKBMSData jkbmsData;
 
@@ -281,7 +297,7 @@ void gui_task(void *pvParameters)
 
             main_screen(bgSprite, &globalState, &jkbmsData);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState);
+            statusBar(bgSprite, &globalState, &jkbmsData);
 
             bgSprite.pushSprite(0, 0);
             break;
@@ -308,7 +324,7 @@ void gui_task(void *pvParameters)
 
             info_screen(bgSprite, &globalState, &jkbmsData);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState);
+            statusBar(bgSprite, &globalState, &jkbmsData);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -337,9 +353,9 @@ void gui_task(void *pvParameters)
             }
             
 
-            control_screen(bgSprite, &globalState);
+            control_screen(bgSprite, &globalState, &jkbmsData);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState);
+            statusBar(bgSprite, &globalState, &jkbmsData);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -368,7 +384,7 @@ void gui_task(void *pvParameters)
 
             settings_screen(bgSprite, &globalState);
             navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState);
+            statusBar(bgSprite, &globalState, &jkbmsData);
             bgSprite.pushSprite(0, 0);
             break;
         }
