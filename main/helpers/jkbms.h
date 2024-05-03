@@ -65,6 +65,8 @@ typedef struct {
     uint8_t disableBalance[20];
 } JKBMSCommands;
 
+
+
 extern JKBMSCommands jkbmsCommands;
 
 #endif // JKBMS_H
