@@ -70,7 +70,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
     // Check if info packet in first 5 bytes
     uint8_t expected_infopacket[5] =        {0x55, 0xAA, 0xEB, 0x90, 0x03};
     uint8_t expected_cellpacket[5] =        {0x55, 0xAA, 0xEB, 0x90, 0x02};
-    uint8_t expected_settingspacket2[5] =   {0x55, 0xAA, 0xEB, 0x90, 0x01};
+    //uint8_t expected_settingspacket2[5] =   {0x55, 0xAA, 0xEB, 0x90, 0x01};
 
     // Check if the data is a valid JKBMS packet
     if (len >= 20)
