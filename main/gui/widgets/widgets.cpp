@@ -73,3 +73,16 @@ void UIWidgets::statusBar(LGFX_Sprite canvas, GlobalState *globalState, JKBMSDat
     
 
 }
+
+//var to hold angle or search icon
+int angle = 0;
+
+void UIWidgets::searchingIcon(LGFX_Sprite canvas, int x, int y, int r, int t) {
+    angle += 10;
+    if (angle >= 360) {
+        angle = 0;
+    }
+
+    canvas.fillArc(x, y, r - t, r, 0, 0 + angle, TFT_WHITE);
+
+}

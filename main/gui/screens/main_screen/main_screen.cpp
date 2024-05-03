@@ -1,5 +1,5 @@
 #include "main_screen.hpp"
-
+#include "gui/widgets/widgets.hpp"
 
 
 
@@ -12,8 +12,8 @@ void main_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData
                     canvas.fillSprite(0x434343u); //Grey
                     canvas.setTextColor(TFT_BLACK);
                     canvas.setTextSize(2.75);
-                    canvas.drawString("No BLE", 50, 40);
-                    canvas.drawString("Connected", 50, 80);
+                    canvas.drawString("Searching", 32, 32);
+                    UIWidgets::searchingIcon(canvas, 120, 80, 15, 5);
                 } 
                 
                 //If BLE is connected, display BMS data
