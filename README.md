@@ -1,32 +1,42 @@
-# _Sample project_
+# JKBMS-Fob
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+This project involves the development of a keyfob-like device powered by an Adafruit ESP32 Feather S3 TFT Reverse board, utilizing Bluetooth Low Energy (BLE) to communicate with JK BMS batteries. It allows users to read battery information and control charging, output, and balancing features directly from the keyfob.
 
-This is the simplest buildable example. The example is used by command `idf.py create-project`
-that copies the project to user specified path and set it's name. For more information follow the [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project)
+## Features
+
+- **Real-time Battery Monitoring:** Fetch and display real-time data from JK BMS batteries including voltage, current, temperature, and more.
+- **Control Charging:** Enable or disable charging of the battery with a simple button press.
+- **Control Discharge:** Enable or disable the output of the battery to connected devices.
+- **Control Balancing:** Enable or disable the balancing feature of the battery.
+
+## Hardware Requirements
+
+- Adafruit ESP32 Feather S3 TFT Reverse board
+- Lipo Battery size TBD
+- JK BMS battery
+
+## Software Requirements
+
+- ESP-IDF v4.4.7
+- Visual Studio Code
+
+## Installation
+
+1. Setup the ESP-IDF environment by following the instructions [here](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html).
+2. Clone the repository.
+3. Open the project in Visual Studio Code.
+4. Build and flash the project to the ESP32 Feather S3 TFT Reverse board.
+
+## Usage
+
+1. Power on the Adafruit ESP32 Feather S3 TFT Reverse board.
+2. Press the buttons on the keyfob to navigate through the menu and control the battery features.
+3. The fob will automatically sleep after a period of inactivity to conserve battery life.
 
 
+## Libraries
 
-## How to use example
-We encourage the users to use the example as a template for the new projects.
-A recommended way is to follow the instructions on a [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project).
-
-## Example folder contents
-
-The project **sample_project** contains one source file in C language [main.c](main/main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
-files that provide set of directives and instructions describing the project's source files and targets
-(executable, library, or both). 
-
-Below is short explanation of remaining files in the project folder.
-
-```
-├── CMakeLists.txt
-├── main
-│   ├── CMakeLists.txt
-│   └── main.c
-└── README.md                  This is the file you are currently reading
-```
-Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
-They are not used or needed when building with CMake and idf.py.
+- 'LovyanGFX' - A library for the TFT display.
+- 'esp-idf-lib' - A library for various ESP components.
+## License
+TODO
