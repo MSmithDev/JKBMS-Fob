@@ -14,6 +14,7 @@
 extern "C"
 {
 #include "ble/ble_task.h"
+#include "tasks/fob_battery_monitor.h"
 }
 
 static const char *TAG = "Main";
@@ -49,6 +50,9 @@ extern "C" void app_main()
 
     // GUI Task
     xTaskCreatePinnedToCore(gui_task, "gui_task", 4096, NULL, 1, NULL, 1);
+    
+    // Fob Battery Monitor Task
+    xTaskCreatePinnedToCore(fobBatteryMonitor, "fob_battery_monitor_task", 4096, NULL, 1, NULL, 1);
 
     // BLE Task
     xTaskCreatePinnedToCore(ble_task, "ble_task", 4096, NULL, 1, NULL, 0);
