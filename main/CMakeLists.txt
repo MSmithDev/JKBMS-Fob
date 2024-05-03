@@ -6,6 +6,8 @@ idf_component_register(SRCS "main.cpp"
 "gui/screens/info_screen/info_screen.cpp"
 "ble/ble_task.c"
 "helpers/utils.cpp"
+"gui/widgets/widgets.cpp"
+"tasks/fob_battery_monitor.c"
                     INCLUDE_DIRS "."
                     
                     )
