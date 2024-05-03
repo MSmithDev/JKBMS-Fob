@@ -2,13 +2,14 @@
 #include "LovyanGFX.hpp"
 #include <string>
 #include "gui/LGFX_Config.hpp"
-#include "freertos/queue.h"
 #include "esp_log.h"
-
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-
+#include "driver/gpio.h"
 // Widgets
 #include "gui/widgets/widgets.hpp"
 
@@ -26,15 +27,14 @@
 #include "helpers/jkbms.h"
 #include "helpers/utils.h"
 
+
+
+
+
 static const char *TAG = "GUI_Task";
 
-
-
-
-
-GlobalState globalState;
-
-
+extern GlobalState globalState;
+extern JKBMSData jkbmsData;
 
 LGFX display;
 
@@ -48,13 +48,11 @@ extern QueueHandle_t bleScan_data_queue;
 void gui_task(void *pvParameters)
 {
 
-    //ESP_ERROR_CHECK(i2cdev_init());
-    // Create task for battery
-    //xTaskCreate(getOnboardBatteryInfo, "getOnboardBatteryInfo", 4096, NULL, 1, NULL);
+    
 
     ble_data_queue = xQueueCreate(5, sizeof(BLEControl));
 
-    JKBMSData jkbmsData;
+    
 
     // Initialize 3 buttons
     // Button UP
@@ -77,7 +75,7 @@ void gui_task(void *pvParameters)
     // Splash Screen
     display.pushImage(0, 0, 240, 135, image_data_splash);
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
     // Create a sprite for the background
     LGFX_Sprite bgSprite(&display);
@@ -266,6 +264,6 @@ void gui_task(void *pvParameters)
             break;
         }
 
-        vTaskDelay(10 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

@@ -1,6 +1,13 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+// Include C++ headers outside of the extern "C" block
+#ifdef __cplusplus
+#include <iostream>
+#include <string>
+#include <sstream>
+#endif // __cplusplus
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,15 +39,10 @@ float randFloat(float min, float max);
 }
 #endif // __cplusplus
 
-// C++ specific includes and declarations outside `extern "C"`
+// C++ specific declarations can be placed outside `extern "C"`
 #ifdef __cplusplus
-#include <iostream>
-#include <string>
-#include <sstream>
-
 // Function to convert float to string with specified precision
 std::string floatToString(float num, int precision);
-
 #endif // __cplusplus
 
 #endif // UTILS_H

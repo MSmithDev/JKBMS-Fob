@@ -15,34 +15,64 @@
 #include "tasks/gui_task.h"
 #include "tasks/fob_battery_monitor.h"
 
-
 static const char *TAG = "Main";
 
+#define WAKE_UP_PIN GPIO_NUM_1 // Fob Select button
 
+bool autoDeepSleep = false; // disabled for testing
 
-#define WAKE_UP_PIN GPIO_NUM_1 // Select button
-
-bool autoDeepSleep = false;
+// Global States
+GlobalState globalState;
+JKBMSData jkbmsData;
 
 extern "C" void app_main()
 {
-    // revert wake up pin to normal use
+
+    /*  -----------------------------
+        Pin configuration
+        -----------------------------  */
+    
+    // Deinitialize the wake-up button
     rtc_gpio_deinit(WAKE_UP_PIN);
 
     // Enable Power to LCD
     gpio_set_direction(GPIO_NUM_7, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_NUM_7, 1);
 
-    // GUI Task
-    xTaskCreatePinnedToCore(gui_task, "gui_task", 4096, NULL, 1, NULL, 1);
-    
-    // Fob Battery Monitor Task
-    xTaskCreatePinnedToCore(fobBatteryMonitor, "fob_battery_monitor_task", 4096, NULL, 1, NULL, 1);
 
-    // BLE Task
-    xTaskCreatePinnedToCore(ble_task, "ble_task", 4096, NULL, 1, NULL, 0);
+    /*  -----------------------------
+        Initialize JKBMS State
+        -----------------------------  */
+    jkbmsData.canBalance = false;
+    jkbmsData.canCharge = false;
+    jkbmsData.canDischarge = false;
 
-    //If Deep Sleep is enabled, enter deep sleep after 30 seconds
+
+
+    /*  -----------------------------
+        Initialize Global State
+        -----------------------------  */
+    globalState.bleConnected = false;
+    globalState.inControl = false;
+    globalState.inSettings = false;
+
+    /*  -----------------------------
+        Start Tasks
+        -----------------------------  */
+
+    // GUI
+    xTaskCreatePinnedToCore(gui_task, "gui_task", 4096, NULL, 1, NULL, 1); // Priority 1, Core 1
+
+    // Fob Battery Monitor
+    xTaskCreatePinnedToCore(fobBatteryMonitor, "fob_battery_monitor_task", 4096, NULL, 1, NULL, 1); // Priority 1, Core 1
+
+    // BLE
+    xTaskCreatePinnedToCore(ble_task, "ble_task", 4096, NULL, 1, NULL, 0); // Priority 1, Core 0
+
+    /*  -----------------------------
+        Deep Sleep
+        -----------------------------  */
+
     if (autoDeepSleep)
     {
         // Deep Sleep timer TODO: Make extendable by button presses
