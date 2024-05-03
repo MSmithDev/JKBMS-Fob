@@ -4,17 +4,18 @@
 #include "LGFX_Config.hpp"
 #include "freertos/queue.h"
 #include "esp_log.h"
-#include "driver/i2c.h"
+
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 
+// Widgets
+#include "widgets/widgets.hpp"
+
 // Images
 #include "images/splash.h"
 #include "images/mainui.h"
-#include "images/NavBar.h"
-#include "images/bleStatus.h"
-#include "images/bleStatusBlue.h"
+
 // Screens
 #include "screens/main_screen/main_screen.hpp"
 #include "screens/settings_screen/settings_screen.hpp"
@@ -25,145 +26,16 @@ static const char *TAG = "GUI_Task";
 #include "helpers/jkbms.h"
 #include "helpers/utils.hpp"
 
-// i2c battery monitor
-#include <max1704x.h>
-#define I2C_MASTER_SDA GPIO_NUM_3
-#define I2C_MASTER_SCL GPIO_NUM_4
+
 
 GlobalState globalState;
 
-void getOnboardBatteryInfo(void *pvParameters)
-{
-    esp_err_t r;
-    max1704x_t dev = {0};
-    max1704x_config_t config = {0};
-    max1704x_status_t status = {0};
-    uint16_t version = 0;
-    float voltage = 0;
-    float soc_percent = 0;
-    float rate_change = 0;
 
-    /**
-     * Set up I2C bus to communicate with MAX1704X
-     */
-
-    dev.model = MAX17048_9;
-
-    ESP_ERROR_CHECK(max1704x_init_desc(&dev, 0, I2C_MASTER_SDA, I2C_MASTER_SCL));
-    ESP_ERROR_CHECK(max1704x_quickstart(&dev));
-    ESP_ERROR_CHECK(max1704x_get_version(&dev, &version));
-    ESP_LOGI(TAG, "Version: %d\n", version);
-    /**
-     * Get current MAX1704X voltage, SOC, and rate of change every 5 seconds
-     */
-
-    while (1)
-    {
-        r = max1704x_get_voltage(&dev, &voltage);
-
-        if (r == ESP_OK)
-        {
-            // ESP_LOGI(TAG, "Voltage: %.2fV", voltage);
-            
-        }
-        else
-            // ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
-
-            r = max1704x_get_soc(&dev, &soc_percent);
-        if (r == ESP_OK)
-        {
-            // ESP_LOGI(TAG, "SOC: %.2f%%", soc_percent);
-            globalState.batteryPercentage = soc_percent;
-        }
-        else
-            ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
-
-        r = max1704x_get_crate(&dev, &rate_change);
-        if (r == ESP_OK)
-        {
-            // ESP_LOGI(TAG, "SOC rate of change: %.2f%%", rate_change);
-        }
-        else
-            ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
-
-        
-        vTaskDelay(pdMS_TO_TICKS(5000));
-    }
-}
 
 LGFX display;
 
 extern QueueHandle_t jkbms_data_queue;
 extern QueueHandle_t bleConnection;
-
-// Widgets
-// NavBar
-void navBar(LGFX_Sprite bgSprite, bool UpKey, bool SelectKey, bool DownKey)
-{
-
-    uint16_t ActiveColor = 0xFFFF;   // Green
-    uint16_t InactiveColor = 0x0000; // Black
-
-    // three squares for the buttons
-    bgSprite.fillRect(1, 14, 27, 27, UpKey ? ActiveColor : InactiveColor);
-    bgSprite.fillRect(1, 54, 27, 27, !SelectKey ? ActiveColor : InactiveColor); // Inverted
-    bgSprite.fillRect(1, 95, 27, 27, DownKey ? ActiveColor : InactiveColor);
-
-    bgSprite.pushImage(0, 0, 30, 135, image_data_NavBar, (uint16_t)0x07E0); // Add NavBar with transparent color
-}
-
-// Fob battery widget
-void fobBatteryWidget(LGFX_Sprite canvas, int x, int y, int w, int h, int percentage)
-{
-    int batteryRadius = 5;
-    // draw battery outline
-    canvas.drawRoundRect(x, y, w, h, batteryRadius, TFT_WHITE);
-
-    // draw positive terminal
-    canvas.fillRoundRect(x + w - 1, y + (h / 2) - 4, 4, 8, 3, TFT_WHITE);
-
-    // draw battery level
-    canvas.fillRoundRect(x + 1, y + 1, (w - 2) * (percentage / 100.0), h - 2, 5, getBatteryColor(percentage, 0, 100));
-}
-
-// Status Bar
-void statusBar(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkbmsData)
-{
-    int bleStatusX = 35;
-    int bleStatusY = 0;
-    bool isConnected = globalState->bleConnected;
-
-    // Black Bar
-    canvas.fillRect(30, 0, 210, 20, TFT_BLACK);
-
-    // BLE Status
-    canvas.fillRect(bleStatusX + 5, bleStatusY + 2, 10, 16, isConnected ? TFT_GREEN : TFT_RED);
-    canvas.pushImage(bleStatusX, bleStatusY, 20, 20, image_data_bleStatusBlue, (uint16_t)0x07E0); // Add BLE Status with transparent color
-
-    // placeholder for icons
-    canvas.setTextColor(TFT_WHITE);
-    canvas.setTextSize(2);
-
-    //Testing
-    jkbmsData->canCharge ? canvas.setTextColor(TFT_GREEN) : canvas.setTextColor(TFT_RED);
-    canvas.drawString("[ ]", 60, 3);
-
-    jkbmsData->canDischarge ? canvas.setTextColor(TFT_GREEN) : canvas.setTextColor(TFT_RED);
-    canvas.drawString("[ ]", 100, 3);
-
-    jkbmsData->canBalance ? canvas.setTextColor(TFT_GREEN) : canvas.setTextColor(TFT_RED);
-    canvas.drawString("[ ]", 140, 3);
-
-    //labels
-    canvas.setTextColor(TFT_WHITE);
-    canvas.setTextSize(1.5);
-    canvas.drawString("C", 75, 5);
-    canvas.drawString("D", 115, 5);
-    canvas.drawString("B", 155, 5);
-
-    // Fob Battery
-    fobBatteryWidget(canvas, 190, 0, 40, 20, globalState->batteryPercentage);
-}
 
 // Queue for sending data to the GUI
 extern QueueHandle_t ble_data_queue;
@@ -172,9 +44,9 @@ extern QueueHandle_t bleScan_data_queue;
 void gui_task(void *pvParameters)
 {
 
-    ESP_ERROR_CHECK(i2cdev_init());
+    //ESP_ERROR_CHECK(i2cdev_init());
     // Create task for battery
-    xTaskCreate(getOnboardBatteryInfo, "getOnboardBatteryInfo", 4096, NULL, 1, NULL);
+    //xTaskCreate(getOnboardBatteryInfo, "getOnboardBatteryInfo", 4096, NULL, 1, NULL);
 
     ble_data_queue = xQueueCreate(5, sizeof(BLEControl));
 
@@ -296,8 +168,8 @@ void gui_task(void *pvParameters)
             }
 
             main_screen(bgSprite, &globalState, &jkbmsData);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState, &jkbmsData);
+            UIWidgets::navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            UIWidgets::statusBar(bgSprite, &globalState, &jkbmsData);
 
             bgSprite.pushSprite(0, 0);
             break;
@@ -323,8 +195,8 @@ void gui_task(void *pvParameters)
             }
 
             info_screen(bgSprite, &globalState, &jkbmsData);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState, &jkbmsData);
+            UIWidgets::navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            UIWidgets::statusBar(bgSprite, &globalState, &jkbmsData);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -354,8 +226,8 @@ void gui_task(void *pvParameters)
             
 
             control_screen(bgSprite, &globalState, &jkbmsData);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState, &jkbmsData);
+            UIWidgets::navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            UIWidgets::statusBar(bgSprite, &globalState, &jkbmsData);
             bgSprite.pushSprite(0, 0);
             break;
 
@@ -383,8 +255,9 @@ void gui_task(void *pvParameters)
             }
 
             settings_screen(bgSprite, &globalState);
-            navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
-            statusBar(bgSprite, &globalState, &jkbmsData);
+            UIWidgets::navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
+            UIWidgets::statusBar(bgSprite, &globalState, &jkbmsData);
+
             bgSprite.pushSprite(0, 0);
             break;
         }
