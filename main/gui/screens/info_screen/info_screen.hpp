@@ -4,7 +4,7 @@
 #ifndef LOVYANGFX_HPP
 #include "LovyanGFX.hpp"
 #include "helpers/jkbms.h"
-#include "helpers/utils.hpp"
+#include "helpers/utils.h"
 #endif
 
 

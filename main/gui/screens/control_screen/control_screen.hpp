@@ -2,7 +2,7 @@
 #define CONTROL_SCREEN_HPP
 
 #include "LovyanGFX.hpp"
-#include "helpers/utils.hpp"
+#include "helpers/utils.h"
 #include "helpers/jkbms.h"
 #include "esp_log.h"
 #include "freertos/queue.h"

@@ -6,7 +6,7 @@
 #endif
 
 #include "helpers/jkbms.h"
-#include "helpers/utils.hpp"
+#include "helpers/utils.h"
 
 
 void settings_screen(LGFX_Sprite canvas, GlobalState *globalState);

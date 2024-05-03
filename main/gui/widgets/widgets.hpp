@@ -2,7 +2,7 @@
 #define WIDGETS_HPP
 
 #include "LovyanGFX.hpp"
-#include "helpers/utils.hpp"
+#include "helpers/utils.h"
 #include "helpers/jkbms.h"
 
 class UIWidgets {

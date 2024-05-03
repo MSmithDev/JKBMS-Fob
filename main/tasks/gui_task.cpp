@@ -1,7 +1,7 @@
-#include "gui_task.hpp"
+#include "gui_task.h"
 #include "LovyanGFX.hpp"
 #include <string>
-#include "LGFX_Config.hpp"
+#include "gui/LGFX_Config.hpp"
 #include "freertos/queue.h"
 #include "esp_log.h"
 
@@ -10,21 +10,25 @@
 #include <sstream>
 
 // Widgets
-#include "widgets/widgets.hpp"
+#include "gui/widgets/widgets.hpp"
 
 // Images
-#include "images/splash.h"
-#include "images/mainui.h"
+#include "gui/images/splash.h"
+#include "gui/images/mainui.h"
 
 // Screens
-#include "screens/main_screen/main_screen.hpp"
-#include "screens/settings_screen/settings_screen.hpp"
-#include "screens/control_screen/control_screen.hpp"
-#include "screens/info_screen/info_screen.hpp"
-static const char *TAG = "GUI_Task";
-// JKBMS Helper
+#include "gui/screens/main_screen/main_screen.hpp"
+#include "gui/screens/settings_screen/settings_screen.hpp"
+#include "gui/screens/control_screen/control_screen.hpp"
+#include "gui/screens/info_screen/info_screen.hpp"
+
+//helpers
 #include "helpers/jkbms.h"
-#include "helpers/utils.hpp"
+#include "helpers/utils.h"
+
+static const char *TAG = "GUI_Task";
+
+
 
 
 
