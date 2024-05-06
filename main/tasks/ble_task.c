@@ -97,6 +97,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 *packetType = 0;
             }
         }
+        
         // Handle each packet type
         switch (*packetType)
         {
@@ -105,13 +106,11 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
             break;
 
         case 2: // Cell packet
-            //ESP_LOGI(TAG, "Got Cell packet! Packet Type: %i Packet Chunk: %i", *packetType, *packetChunk);
+
 
             switch (*packetChunk) // 1-3 packets
             {
             case 1:
-                //ESP_LOGI(TAG, "Processing packet 1 LEN[%i]", len);
-                // esp_log_buffer_hex(TAG, data, len);
 
                 // Packet 1 length should be 128
                 if (len == 128)
@@ -129,8 +128,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 break;
 
             case 2:
-                //ESP_LOGI(TAG, "Processing packet 2 LEN[%i]", len);
-                // esp_log_buffer_hex(TAG, data, len);
+
                 //  Next packet should be 3
                 if (*packetChunk == 2)
                 {
@@ -141,8 +139,6 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 break;
 
             case 3:
-                //ESP_LOGI(TAG, "Processing packet 3 LEN[%i]", len);
-                // esp_log_buffer_hex(TAG, data, len);
 
                 // Packet 3 length should be 128
                 if (len == 128)
@@ -151,7 +147,6 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                     memcpy(assembledPacket + 150, data, 128);
 
                     
-
                     // Cell voltages [6:46]
                     for (int i = 0; i < 23; i++)
                     {
@@ -214,9 +209,9 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
 
                 // Next packet should be 0
                 if (*packetChunk == 3)
-                {
                     *packetChunk = 0;
-                }
+
+
                 break;
 
             default:
