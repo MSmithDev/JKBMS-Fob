@@ -1,3 +1,5 @@
+![example workflow](https://github.com/MSmithDev/JKBMS-Fob/tree/main/.github/workflows/main.yml/badge.svg)
+
 # JKBMS-Fob
 
 This project involves the development of a keyfob-like device powered by an Adafruit ESP32 Feather S3 TFT Reverse board, utilizing Bluetooth Low Energy (BLE) to communicate with JK BMS batteries. It allows users to read battery information and control charging, output, and balancing features directly from the keyfob.
