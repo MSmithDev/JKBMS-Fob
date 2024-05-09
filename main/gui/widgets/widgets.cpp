@@ -3,6 +3,11 @@
 //Images
 #include "gui/images/NavBar.h"
 #include "gui/images/bleStatusBlue.h"
+#include <map>
+
+
+//temp logging
+#include "esp_log.h"
 
 //Navbar
 void UIWidgets::navBar(LGFX_Sprite canvas, bool UpKey, bool SelectKey, bool DownKey) {
@@ -74,15 +79,89 @@ void UIWidgets::statusBar(LGFX_Sprite canvas, GlobalState *globalState, JKBMSDat
 
 }
 
-//var to hold angle or search icon
-int angle = 0;
-
+//Searching Icon Animation
+int searchingAngle = 0;
 void UIWidgets::searchingIcon(LGFX_Sprite canvas, int x, int y, int r, int t) {
-    angle += 10;
-    if (angle >= 360) {
-        angle = 0;
+    searchingAngle += 10;
+    if (searchingAngle >= 360) {
+        searchingAngle = 0;
     }
 
-    canvas.fillArc(x, y, r - t, r, 0, 0 + angle, TFT_WHITE);
+    canvas.fillArc(x, y, r - t, r, 0, 0 + searchingAngle, TFT_WHITE);
 
+}
+
+
+//BMS Gauge
+void UIWidgets::bmsGauge(LGFX_Sprite canvas, int x, int y, int rad, int thickness, float min, float max, float value, char* unit, unsigned int color, int precision) {
+    
+    // mabye store current font and restore it after drawing?
+    //canvas.getFont();
+    
+    unsigned int ThemeColor = 0xbabcbbu;
+
+    int mappedValue = Utils::mapFloatToInt(value, min, max, 90, 360); // Map the value to the gauge
+
+    // Draw the gauge
+    canvas.fillArc(x, y, rad-1, (rad+1)-thickness,90,mappedValue, color);
+
+    // Draw outline pass 1-2
+    canvas.drawArc(x, y, rad, rad-thickness, 90, 360, ThemeColor);
+   // canvas.drawArc(x, y, rad-1, (rad+1)-thickness, 90, 360, ThemeColor);
+    
+    //set label datum
+    canvas.setTextDatum(TL_DATUM);
+    canvas.setTextSize(0.75);
+    canvas.setTextColor(ThemeColor);
+    canvas.setFont(&fonts::Font4);
+    std::string valueStr = floatToString(value, precision) + " " + unit;
+    canvas.drawString(valueStr.c_str(), x+5, y+2);
+}
+
+//Tempature Text Box
+
+void UIWidgets::tempatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, float mosfet, float t1, float t2, unsigned int color) {
+    
+    unsigned int ThemeColor = 0xbabcbbu;
+
+    //Container
+    //canvas.drawRect(x, y, w, h, TFT_ORANGE);
+    canvas.setTextDatum(TC_DATUM);
+    canvas.setFont(&fonts::Font2);
+    canvas.setTextColor(ThemeColor);
+
+    //Mosfet
+    canvas.setTextColor(ThemeColor);
+    canvas.setTextSize(1);
+    canvas.drawString("Mosfet", x+(w/2), y);
+    //canvas.drawFastHLine(x, y+16, w, TFT_ORANGE);
+    std::string valueStr = floatToString(mosfet, 1) + "C";
+    canvas.setTextSize(1.1);
+    canvas.setTextColor(Utils::getColorGreenRed(mosfet, 0, 80));
+    canvas.drawString(valueStr.c_str(), x+(w/2), y+18);
+
+    //Temp1
+    canvas.setTextColor(ThemeColor);
+    canvas.setTextSize(1);
+    //canvas.drawFastHLine(x, y+35, w, TFT_ORANGE);
+    canvas.drawString("Temp 1", x+(w/2), y+35);
+    //canvas.drawFastHLine(x, y+51, w, TFT_ORANGE);
+    valueStr = floatToString(t1, 1) + "C";
+    canvas.setTextSize(1.1);
+    canvas.setTextColor(Utils::getColorGreenRed(t1, 0, 80));
+    canvas.drawString(valueStr.c_str(), x+(w/2), y+53);
+
+    //Temp2
+    canvas.setTextColor(ThemeColor);
+    canvas.setTextSize(1);
+    //canvas.drawFastHLine(x, y+70, w, TFT_ORANGE);
+    canvas.drawString("Temp 2", x+(w/2), y+70);
+    //canvas.drawFastHLine(x, y+86, w, TFT_ORANGE);
+    valueStr = floatToString(t2, 1) + "C";
+    canvas.setTextSize(1.1);
+    canvas.setTextColor(Utils::getColorGreenRed(t2, 0, 80));
+    canvas.drawString(valueStr.c_str(), x+(w/2), y+88);
+    
+
+    
 }

@@ -11,7 +11,10 @@ public:
     static void fobBattery(LGFX_Sprite canvas, int x, int y, int w, int h, int percentage);
     static void statusBar(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkbmsData);
     static void searchingIcon(LGFX_Sprite canvas, int x, int y, int radius, int thickness);
-};
+
+    static void bmsGauge(LGFX_Sprite canvas, int x, int y, int rad, int thickness, float min, float max, float value, char* unit, unsigned int color, int precision);
+    static void tempatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, float mosfet, float t1, float t2, unsigned int color);
+};  
 
 
 
