@@ -18,28 +18,27 @@ void main_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData
                 
                 //If BLE is connected, display BMS data
                 else {
-                    canvas.fillSprite(0x434343u); //Grey
+                    //canvas.fillSprite(0x434343u); //Grey
+                    canvas.fillSprite(TFT_BLACK); //Black
                     canvas.setTextColor(TFT_BLACK);
-                    canvas.setTextSize(2);
-                    canvas.drawString("Raw Data", 32, 22);
+                    unsigned int color;
                     
-                    canvas.setTextSize(1.5);
-                    //Extract Strings
-                    std::string voltage = "Voltage: " + floatToString(jkData->packVoltage, 2);
-                    std::string current = "Power: " + floatToString(jkData->packPower, 2);
-                    std::string avgCellV = "Avg Cell V: " + floatToString(jkData->avgCellVoltage, 3);
-                    std::string cycleAh = "Cycle Ah: " + floatToString(jkData->cycleAh, 2);
-                    std::string cycles = "Cycles: " + std::to_string(jkData->cycleCount);
-                    std::string percent = "Percent: " + std::to_string(jkData->packPercentage) + "%";
-
-                    canvas.drawString(voltage.c_str(), 40, 40);
-                    canvas.drawString(current.c_str(), 40, 55);
-                    canvas.drawString(avgCellV.c_str(), 40, 70);
-                    canvas.drawString(cycleAh.c_str(), 40, 85);
-                    canvas.drawString(cycles.c_str(), 40, 100);
-                    canvas.drawString(percent.c_str(), 40, 115);
+                    // Voltage gauge
+                    color = Utils::getColorRedGreen(jkData->packVoltage, 70.0, 84.0);
+                    UIWidgets::bmsGauge(canvas, 50, 40, 15, 8, 70.0, 84.0, jkData->packVoltage,"V", color, 1);
                     
+                    // Power gauge
+                    color = Utils::getColorGreenRed(400.0, 0.0, 3000.0);
+                    UIWidgets::bmsGauge(canvas, 50, 75, 15, 8, 0.0, 3000.0, 1000.0,"W", color, 0);
                 
+                    //Ah remaining gauge
+                    color = Utils::getColorRedGreen(jkData->capacityRemaining, 0.0, 34.0);
+                    UIWidgets::bmsGauge(canvas, 50, 110, 15, 8, 0.0, 34.0, jkData->capacityRemaining,"Ah", color, 1);
+                    
+                    //Temperatures
+
+                    //Mosfet
+                    UIWidgets::tempatureBox(canvas, 190, 30, 50, 105, jkData->mosfetTemp, jkData->probe1Temp, jkData->probe2Temp, TFT_WHITE);
                 }
 
                 
