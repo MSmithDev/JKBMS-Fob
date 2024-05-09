@@ -737,6 +737,16 @@ static void esp_gattc_cb(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp
     } while (0);
 }
 
+
+uint8_t crc(const uint8_t data[], const uint16_t len) {
+  uint8_t crc = 0;
+  for (uint16_t i = 0; i < len; i++) {
+    crc = crc + data[i];
+  }
+  return crc;
+}
+
+
 // Queue for sending data to the GUI
 QueueHandle_t ble_data_queue;
 QueueHandle_t ble_sender_queue;
@@ -893,6 +903,10 @@ void ble_task(void *pvParameters)
             if (xQueueReceive(ble_sender_queue, &BLEcmd, (TickType_t)5))
             {
                 ESP_LOGI(TAG, "Sending BLE Command to %x", BLEcmd.characteristic);
+
+                //add crc to the data
+                BLEcmd.data[19] = crc(BLEcmd.data, 19);
+
                 esp_ble_gattc_write_char(gatc_if,
                                          gl_profile_tab[PROFILE_A_APP_ID].conn_id,
                                          gl_profile_tab[PROFILE_A_APP_ID].char_handle,
