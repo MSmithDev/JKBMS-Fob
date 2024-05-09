@@ -97,7 +97,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 *packetType = 0;
             }
         }
-        
+
         // Handle each packet type
         switch (*packetType)
         {
@@ -180,6 +180,15 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                     // Get Battery Current [126:129]
                     jkbmsData.packCurrent = (float)((assembledPacket[129] << 24) | (assembledPacket[128] << 16) | (assembledPacket[127] << 8) | assembledPacket[126]) / 1000.0;
 
+                    // Get Probe 1 Tempature [130:131]
+                    jkbmsData.probe1Temp = (float)((assembledPacket[131] << 8) | assembledPacket[130]) / 10.0;
+
+                    // Get Probe 2 Tempature [132:133]
+                    jkbmsData.probe2Temp = (float)((assembledPacket[133] << 8) | assembledPacket[132]) / 10.0;
+
+                    // Get Mosfet Tempature [134:135]
+                    jkbmsData.mosfetTemp = (float)((assembledPacket[135] << 8) | assembledPacket[134]) / 10.0;
+
                     //get balance current [138:139]
                     jkbmsData.balanceCurrent = (float)((assembledPacket[139] << 8) | assembledPacket[138]) / 1000.0;
 
@@ -189,10 +198,13 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                     // Get pack percent charged [141]
                     jkbmsData.packPercentage = assembledPacket[141];
 
+                    // Get pack capacity remaining [142:145]
+                    jkbmsData.capacityRemaining = (float)((assembledPacket[145] << 24) | (assembledPacket[144] << 16) | (assembledPacket[143] << 8) | assembledPacket[142]) / 1000.0;
 
                     // get cycle count r2[150:153]
                     jkbmsData.cycleCount = (int)((assembledPacket[153] << 24) | (assembledPacket[152] << 16) | (assembledPacket[151] << 8) | assembledPacket[150]);
 
+                
                     // Get cycle cap Ah [154:157]
                     jkbmsData.cycleAh = (float)((assembledPacket[157] << 24) | (assembledPacket[156] << 16) | (assembledPacket[155] << 8) | assembledPacket[154]) / 1000.0;
 
