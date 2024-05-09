@@ -26,6 +26,9 @@ typedef struct {
     int maxVCell;
     int minVCell;
     int runTimeSec;
+    float mosfetTemp;
+    float probe1Temp;
+    float probe2Temp;
 } JKBMSData;
 
 typedef struct {
