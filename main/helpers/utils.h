@@ -43,6 +43,16 @@ float randFloat(float min, float max);
 #ifdef __cplusplus
 // Function to convert float to string with specified precision
 std::string floatToString(float num, int precision);
+
+class Utils {
+    public:
+        static float mapFloat(float input, float in_min, float in_max, float out_min, float out_max);
+        static int mapFloatToInt(float value, float inputMin, float inputMax, int outputMin, int outputMax);
+        static unsigned int getColorRedGreen(float input, float minInput, float maxInput);
+        static unsigned int getColorGreenRed(float input, float minInput, float maxInput);
+        static unsigned int getColorBlueRed(float input, float minInput, float maxInput);
+};
+
 #endif // __cplusplus
 
 #endif // UTILS_H

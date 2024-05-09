@@ -1,5 +1,5 @@
 #include "utils.h"
-
+#include <cmath>
 
 // Function to convert float to string with specified precision
 std::string floatToString(float num, int precision) {
@@ -75,4 +75,108 @@ float randFloat(float min_val, float max_val)
 
     // Adjust the scale to the desired range and return
     return min_val + scale * (max_val - min_val);
+}
+
+//New utils go here
+
+float Utils::mapFloat(float input, float in_min, float in_max, float out_min, float out_max)
+{
+    // Ensure input is within the expected range
+    if (input < in_min) input = in_min;
+    if (input > in_max) input = in_max;
+
+    // Map the input value to the output range
+    return out_min + (out_max - out_min) * ((input - in_min) / (in_max - in_min));
+}
+
+// Function to map a float value to an int within a specified range
+int Utils::mapFloatToInt(float value, float inputMin, float inputMax, int outputMin, int outputMax) {
+    // Ensure the value is within the expected range
+    if (value < inputMin) value = inputMin;
+    if (value > inputMax) value = inputMax;
+
+    // Map the float value to the integer range and round to nearest integer
+    return static_cast<int>(round(outputMin + (outputMax - outputMin) * ((value - inputMin) / (inputMax - inputMin))));
+}
+
+// Get the color from red - green based on input values
+
+unsigned int Utils::getColorRedGreen(float input, float minInput, float maxInput)
+{
+    // Clamp the input to the range [minInput, maxInput]
+    input = std::max(minInput, std::min(maxInput, input));
+
+    // Normalize the input to a [0, 1] range
+    float range = maxInput - minInput;
+    float normalized = (input - minInput) / range;
+
+    // Define colors for low (red), mid (orange), and high (green) levels
+    uint8_t red, green, blue;
+    if (normalized < 0.5) {
+        // Transition from red to orange
+        float midNormalized = normalized * 2; // Scale to [0, 1] for half the range
+        red = 255;
+        green = static_cast<uint8_t>(midNormalized * 165); // Orange at mid-point (165 is the green value in orange color)
+        blue = 0;
+    } else {
+        // Transition from orange to green
+        float midNormalized = (normalized - 0.5) * 2; // Adjust to start from 0 again and scale to [0, 1]
+        red = static_cast<uint8_t>((1 - midNormalized) * 255); // Decrease red
+        green = 165 + static_cast<uint8_t>(midNormalized * (255 - 165)); // Start from orange and go to full green
+        blue = 0;
+    }
+
+    // Combine the components into a single unsigned integer
+    // Format: 0xRRGGBB
+    return (red << 16) | (green << 8) | blue;
+}
+
+unsigned int Utils::getColorGreenRed(float input, float minInput, float maxInput)
+{
+    // Clamp the input to the range [minInput, maxInput]
+    input = std::max(minInput, std::min(maxInput, input));
+
+    // Normalize the input to a [0, 1] range
+    float range = maxInput - minInput;
+    float normalized = (input - minInput) / range;
+
+    // Define colors for low (green), mid (orange), and high (red) levels
+    uint8_t red, green, blue;
+    if (normalized < 0.5) {
+        // Transition from green to orange
+        float midNormalized = normalized * 2; // Scale to [0, 1] for half the range
+        red = static_cast<uint8_t>(midNormalized * 255); // Increase red
+        green = 255 - static_cast<uint8_t>(midNormalized * (255 - 165)); // Decrease green starting from full
+        blue = 0;
+    } else {
+        // Transition from orange to red
+        float midNormalized = (normalized - 0.5) * 2; // Adjust to start from 0 again and scale to [0, 1]
+        red = 255; // Full red
+        green = static_cast<uint8_t>((1 - midNormalized) * 165); // Decrease green to 0 from orange
+        blue = 0;
+    }
+
+    // Combine the components into a single unsigned integer
+    // Format: 0xRRGGBB
+    return (red << 16) | (green << 8) | blue;
+}
+
+unsigned int Utils::getColorBlueRed(float input, float minInput, float maxInput)
+{
+    // Clamp the input to the range [minInput, maxInput]
+    input = std::max(minInput, std::min(maxInput, input));
+
+    // Normalize the input to a [0, 1] range
+    float range = maxInput - minInput;
+    float normalized = (input - minInput) / range;
+
+    // Define colors for blue at low and red at high
+    uint8_t red, green, blue;
+    red = static_cast<uint8_t>(normalized * 255); // Red increases as input increases
+    green = 0; // No green component
+    blue = static_cast<uint8_t>((1 - normalized) * 255); // Blue decreases as input increases
+
+    // Combine the components into a single unsigned integer
+    // Format: 0xRRGGBB
+    return (red << 16) | (green << 8) | blue;
 }
