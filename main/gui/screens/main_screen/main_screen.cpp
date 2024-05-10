@@ -28,8 +28,8 @@ void main_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData
                     UIWidgets::bmsGauge(canvas, 50, 40, 15, 8, 70.0, 84.0, jkData->packVoltage,"V", color, 1);
                     
                     // Power gauge
-                    color = Utils::getColorGreenRed(400.0, 0.0, 3000.0);
-                    UIWidgets::bmsGauge(canvas, 50, 75, 15, 8, 0.0, 3000.0, 1000.0,"W", color, 0);
+                    color = Utils::getColorGreenRed(jkData->packPower, 0.0, 3000.0);
+                    UIWidgets::bmsGauge(canvas, 50, 75, 15, 8, 0.0, 3000.0, jkData->packPower,"W", color, 0);
                 
                     //Ah remaining gauge
                     color = Utils::getColorRedGreen(jkData->capacityRemaining, 0.0, 34.0);
