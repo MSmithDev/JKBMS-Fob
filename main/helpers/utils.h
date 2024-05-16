@@ -17,11 +17,10 @@ struct GlobalState {
     int CurrentScreen;
     int CurrentPage;
     bool inSettings;
-    int settingsPage;
     bool inControl;
+    int settingsPage;
     int controlOption;
     int bleSetup;
-    int bleSelectedDevice;
     bool bleConnected;
     bool upKey;
     bool downKey;
