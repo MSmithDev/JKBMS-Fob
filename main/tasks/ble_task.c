@@ -227,7 +227,7 @@ void decodeJKBMSData(uint8_t *data, uint16_t len, int *packetChunk, int *packetT
                 break;
 
             default:
-                ESP_LOGI(TAG, "Got Chunk 0 in cell packet!");
+                
                 break;
             }
 
@@ -592,30 +592,30 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
             // esp_log_buffer_char(TAG, adv_name, adv_name_len);
             if (adv_name_len > 1)
             {
-                ESP_LOGI(TAG, "DEVICE NAME: %s", adv_name);
-                ESP_LOGI(TAG, "DEVICE NAME LEN: %d", adv_name_len);
-                esp_log_buffer_hex(TAG, scan_result->scan_rst.bda, 6);
-                ESP_LOGI(TAG, "RSSI: %d", scan_result->scan_rst.rssi);
-                ESP_LOGI(TAG, "Device Address: %x:%x:%x:%x:%x:%x", scan_result->scan_rst.bda[0], scan_result->scan_rst.bda[1], scan_result->scan_rst.bda[2], scan_result->scan_rst.bda[3], scan_result->scan_rst.bda[4], scan_result->scan_rst.bda[5]);
+                //ESP_LOGI(TAG, "DEVICE NAME: %s", adv_name);
+                //ESP_LOGI(TAG, "DEVICE NAME LEN: %d", adv_name_len);
+                //esp_log_buffer_hex(TAG, scan_result->scan_rst.bda, 6);
+                //ESP_LOGI(TAG, "RSSI: %d", scan_result->scan_rst.rssi);
+                //ESP_LOGI(TAG, "Device Address: %x:%x:%x:%x:%x:%x", scan_result->scan_rst.bda[0], scan_result->scan_rst.bda[1], scan_result->scan_rst.bda[2], scan_result->scan_rst.bda[3], scan_result->scan_rst.bda[4], scan_result->scan_rst.bda[5]);
                 // newline
-                ESP_LOGI(TAG, "\n");
+                //ESP_LOGI(TAG, "\n");
                 unsigned char addr[6];
                 memcpy(addr, scan_result->scan_rst.bda, 6);
 
                 for (int i = 0; i < 20; i++)
                 {
-                    ESP_LOGI(TAG, "Checking index %i, Got: %s bda0: %x addr0: %x", i, bleScan[i].deviceName, bleScan[i].deviceAddress[0], addr[0]);
+                    //ESP_LOGI(TAG, "Checking index %i, Got: %s bda0: %x addr0: %x", i, bleScan[i].deviceName, bleScan[i].deviceAddress[0], addr[0]);
                     if (memcmp(bleScan[i].deviceAddress, addr, 6) == 0)
                     {
-                        ESP_LOGI(TAG, "%s already in list", adv_name);
+                        //ESP_LOGI(TAG, "%s already in list", adv_name);
                         break;
                     }
                     else
                     {
-                        ESP_LOGI(TAG, "Not in list! %x", bleScan[i].deviceAddress[0]);
+                        //ESP_LOGI(TAG, "Not in list! %x", bleScan[i].deviceAddress[0]);
                         if (bleScan[i].deviceAddress[0] == '\0')
                         {
-                            ESP_LOGI(TAG, "Adding %s to list", adv_name);
+                            //ESP_LOGI(TAG, "Adding %s to list", adv_name);
                             bleScan[i].rssi = scan_result->scan_rst.rssi;
                             memcpy(bleScan[i].deviceAddress, addr, 6);
                             memcpy(bleScan[i].deviceName, adv_name, adv_name_len);
