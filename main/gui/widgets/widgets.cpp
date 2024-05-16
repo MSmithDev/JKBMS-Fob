@@ -118,9 +118,9 @@ void UIWidgets::bmsGauge(LGFX_Sprite canvas, int x, int y, int rad, int thicknes
     canvas.drawString(valueStr.c_str(), x+5, y+2);
 }
 
-//Tempature Text Box
+//Temperature readouts
 
-void UIWidgets::tempatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, float mosfet, float t1, float t2, unsigned int color) {
+void UIWidgets::TemperatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, float mosfet, float t1, float t2, unsigned int color) {
     
     unsigned int ThemeColor = 0xbabcbbu;
 
@@ -164,4 +164,41 @@ void UIWidgets::tempatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, flo
     
 
     
+}
+
+void UIWidgets::bmsBattery(LGFX_Sprite canvas, int x, int y, int w, int h, JKBMSData *jkData) {
+    unsigned int ThemeColor = 0xbabcbbu;
+    unsigned int CellLineColor = 0x000000;
+
+    int NumberCells = 10;
+    int batteryRadius = 5;
+
+    // Draw battery level
+    int fillHeight = (h - 2) * (jkData->packPercentage / 100.0);  // Adjust the height to fit within the outline
+    canvas.fillRoundRect(x + 1, y + h - 1 - fillHeight, w - 2, fillHeight, batteryRadius, getBatteryColor(jkData->packPercentage, 0, 100));
+
+    // Draw battery outline
+    canvas.drawRoundRect(x, y, w, h, batteryRadius-1, ThemeColor);
+
+    // Draw positive terminal on top center
+    canvas.fillRoundRect(x + (w / 2) - 4, y-2, 8, 4, 3, ThemeColor);
+    
+    
+
+    // Draw lines for each cell
+    for (int i = 1; i < NumberCells; i++) {
+
+        //canvas.drawFastHLine(x+1, y-1 + (i * (h / NumberCells)), w-2, CellLineColor);
+        canvas.drawFastHLine(x+1, y + (i * (h / NumberCells)), w-2, CellLineColor);
+        //canvas.drawFastHLine(x+1, y+1 + (i * (h / NumberCells)), w-2, CellLineColor);
+    }
+
+    // Draw Empty/Full Labels
+    canvas.setTextColor(TFT_RED);
+    canvas.setTextSize(1);
+    canvas.drawString("E", x + w + 5, y + h - 10);
+
+    canvas.setTextColor(TFT_GREEN);
+    canvas.drawString("F", x + w + 5, y + 5);
+
 }

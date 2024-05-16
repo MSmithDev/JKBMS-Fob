@@ -36,9 +36,10 @@ void main_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData
                     UIWidgets::bmsGauge(canvas, 50, 110, 15, 8, 0.0, 34.0, jkData->capacityRemaining,"Ah", color, 1);
                     
                     //Temperatures
+                    UIWidgets::TemperatureBox(canvas, 190, 30, 50, 105, jkData->mosfetTemp, jkData->probe1Temp, jkData->probe2Temp, TFT_WHITE);
 
-                    //Mosfet
-                    UIWidgets::tempatureBox(canvas, 190, 30, 50, 105, jkData->mosfetTemp, jkData->probe1Temp, jkData->probe2Temp, TFT_WHITE);
+                    //Battery            (Canvas, x, y, w, h, jkData)
+                    UIWidgets::bmsBattery(canvas, 130, 30, 40, 100, jkData);
                 }
 
                 
