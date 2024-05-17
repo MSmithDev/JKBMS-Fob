@@ -3,6 +3,7 @@
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "gui/widgets/widgets.hpp"
+#include "gui/images/SettingsIcon.h"
 
 #define TAG "settings_screen"
 
@@ -46,10 +47,13 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
 
     if (!globalState->inSettings)
     {
-        canvas.fillSprite(0x434343u); // Grey
-        canvas.setTextColor(TFT_BLACK);
+        canvas.fillSprite(0x000000u);
+        canvas.setTextColor(0xFF9900u);
         canvas.setTextSize(2.75);
-        canvas.drawString("Settings", 40, 40);
+        canvas.setTextDatum(TC_DATUM);
+        canvas.drawString("Settings", 135, 100);
+        canvas.setTextDatum(TL_DATUM);
+        canvas.pushImage(135-32, 30, 64, 64, image_data_SettingsIcon, (uint16_t)0x07E0);
     }
     else
     {
@@ -57,10 +61,9 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
         switch (globalState->settingsPage)
         {
         case 1:                           // Ble Setup
-            canvas.fillSprite(0x434343u); // Grey
-            canvas.setTextColor(TFT_BLACK);
-            canvas.setTextSize(2.75);
-            canvas.drawString("BLE Set", 40, 40);
+            canvas.fillSprite(0x000000u);
+            UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "BLE Config");
+
 
             handleNav(globalState, &globalState->settingsPage, 4, 2);
             if (globalState->selectKey)
@@ -71,28 +74,22 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
             break;
 
         case 2:                           // Brightness
-            canvas.fillSprite(0x434343u); // Grey
-            canvas.setTextColor(TFT_BLACK);
-            canvas.setTextSize(2.75);
-            canvas.drawString("Brightness", 40, 40);
+            canvas.fillSprite(0x000000u);
+            UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Brightness");
 
             handleNav(globalState, &globalState->settingsPage, 1, 3);
             break;
 
         case 3:                           // Sleep Modes
-            canvas.fillSprite(0x434343u); // Grey
-            canvas.setTextColor(TFT_BLACK);
-            canvas.setTextSize(2.75);
-            canvas.drawString("Sleep Modes", 40, 40);
+            canvas.fillSprite(0x000000u);
+            UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Sleep Modes");
 
             handleNav(globalState, &globalState->settingsPage, 2, 4);
             break;
 
         case 4:                           // Back
-            canvas.fillSprite(0x434343u); // Grey
-            canvas.setTextColor(TFT_BLACK);
-            canvas.setTextSize(2.75);
-            canvas.drawString("Back", 40, 40);
+            canvas.fillSprite(0x000000);
+            UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Back");
 
             handleNav(globalState, &globalState->settingsPage, 3, 1);
 
