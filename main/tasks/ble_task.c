@@ -600,9 +600,10 @@ static void esp_gap_cb(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
                 // newline
                 //ESP_LOGI(TAG, "\n");
                 unsigned char addr[6];
+                
                 memcpy(addr, scan_result->scan_rst.bda, 6);
-
-                for (int i = 0; i < 20; i++)
+                memcpy(bleScan[0].deviceName, "<-BACK", 6);
+                for (int i = 1; i < 20; i++)
                 {
                     //ESP_LOGI(TAG, "Checking index %i, Got: %s bda0: %x addr0: %x", i, bleScan[i].deviceName, bleScan[i].deviceAddress[0], addr[0]);
                     if (memcmp(bleScan[i].deviceAddress, addr, 6) == 0)

@@ -16,6 +16,9 @@ public:
     static void TemperatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, float mosfet, float t1, float t2, unsigned int color);
 
     static void bmsBattery(LGFX_Sprite canvas, int x, int y, int w, int h, JKBMSData *jkData);
+
+    
+    static void menuBoxRssi(LGFX_Sprite canvas, int x, int y, int w, int h, int selected, int numDevices, BLEScan scans[]);
 };  
 
 
