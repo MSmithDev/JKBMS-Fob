@@ -166,7 +166,7 @@ void UIWidgets::TemperatureBox(LGFX_Sprite canvas, int x, int y, int w, int h, f
 void UIWidgets::bmsBattery(LGFX_Sprite canvas, int x, int y, int w, int h, JKBMSData *jkData)
 {
     unsigned int ThemeColor = 0xbabcbbu;
-    unsigned int CellLineColor = 0x000000;
+    unsigned int CellLineColor = 0x000000u;
 
     int NumberCells = 10;
     int batteryRadius = 5;
@@ -201,10 +201,10 @@ void UIWidgets::bmsBattery(LGFX_Sprite canvas, int x, int y, int w, int h, JKBMS
 
 void UIWidgets::menuBoxRssi(LGFX_Sprite canvas, int x, int y, int w, int h, int selected, int numDevices, BLEScan scans[]) {
     // Define colors
-    unsigned int textColor = 0xFFFFFF;
-    unsigned int selectedColor = 0xFF9900;
-    unsigned int selectedBackgroundColor = 0x292929;
-    unsigned int backColor = 0xFF0000;
+    unsigned int textColor = 0xFFFFFFu;
+    unsigned int selectedColor = 0xFF9900u;
+    unsigned int selectedBackgroundColor = 0x292929u;
+    unsigned int backColor = 0xFF0000u;
 
     // Menu item configuration
     int itemHeight = 20;
@@ -257,4 +257,26 @@ void UIWidgets::menuBoxRssi(LGFX_Sprite canvas, int x, int y, int w, int h, int 
 }
 
 
+void UIWidgets::arrowLabel(LGFX_Sprite canvas, int x, int y, bool up, bool down,int textSize, char* label) {
+    // Define colors
+    unsigned int textColor = 0xFFFFFFu;
+    unsigned int selectedColor = 0xFF9900u;
+    unsigned int selectedBackgroundColor = 0x292929u;
 
+    // Set text size
+    canvas.setTextSize(textSize);
+
+    // Draw the label
+    canvas.setTextColor(textColor);
+    canvas.setTextDatum(CC_DATUM);
+    canvas.drawString(label, x, y);
+
+    // Draw the arrows using drawTriangle
+    
+    if (up) {
+        canvas.drawTriangle(x, y-40, x-10, y-30, x+10, y-30, TFT_ORANGE);
+    }
+    if (down) {
+        canvas.drawTriangle(x, y+40, x-10, y+30, x+10, y+30, TFT_ORANGE);
+    }
+}
