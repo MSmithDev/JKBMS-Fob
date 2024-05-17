@@ -1,4 +1,6 @@
 #include "control_screen.hpp"
+#include "gui/images/SettingsIcon.h"
+#include "gui/images/CommandsIcon.h"
 
 extern QueueHandle_t ble_sender_queue;
 
@@ -53,8 +55,8 @@ void control_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkb
             }
         }
 
-        canvas.fillSprite(0x434343u); // Grey
-        canvas.setTextColor(TFT_BLACK);
+        canvas.fillSprite(0x000000u);
+        canvas.setTextColor(0xFF9900u);
         canvas.setTextSize(2);
         canvas.drawString("CTRL CMDS", 32, 22);
 
@@ -73,11 +75,11 @@ void control_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkb
             // set text color based on highlighted state
             if (ctrlOption[i].highlighted)
             {
-                canvas.setTextColor(TFT_BLACK, TFT_LIGHTGRAY);
+                canvas.setTextColor(0xFF9900u, 0x292929u);
             }
             else
             {
-                canvas.setTextColor(TFT_BLACK);
+                canvas.setTextColor(TFT_WHITE);
             }
 
             canvas.setTextSize(1.5);
@@ -147,21 +149,23 @@ void control_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkb
     }
     else if (!globalState->inControl && globalState->bleConnected)
     {
-        // Placeholder
-        canvas.fillSprite(0x434343u); // Grey
-        canvas.setTextColor(TFT_BLACK);
+        canvas.fillSprite(0x000000u);
+        canvas.setTextColor(0xFF9900u);
         canvas.setTextSize(2.75);
-        canvas.drawString("CTRLs", 40, 40);
-        canvas.drawString("Commands", 40, 80);
+        canvas.setTextDatum(TC_DATUM);
+        canvas.drawString("Commands", 135, 100);
+        canvas.setTextDatum(TL_DATUM);
+        canvas.pushImage(135-32, 30, 64, 64, image_data_CommandsIcon, (uint16_t)0x07E0);
     }
     else if (!globalState->bleConnected)
     {
 
-        // No BLE connection screen
-        canvas.fillSprite(0x434343u); // Grey
-        canvas.setTextColor(TFT_BLACK);
+        canvas.fillSprite(0x000000u);
+        canvas.setTextColor(0xFF9900u);
         canvas.setTextSize(2.75);
-        canvas.drawString("CTRLs", 40, 40);
-        canvas.drawString("no BLE", 40, 80);
+        canvas.setTextDatum(TC_DATUM);
+        canvas.drawString("CMD NO BLE", 135, 100);
+        canvas.setTextDatum(TL_DATUM);
+        canvas.pushImage(135-32, 30, 64, 64, image_data_SettingsIcon, (uint16_t)0x07E0);
     }
 }
