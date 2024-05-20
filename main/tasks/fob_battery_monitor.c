@@ -4,8 +4,10 @@
 #include "freertos/task.h"
 #include "driver/i2c.h"
 #include <max1704x.h>
+#include "helpers/utils.h"
 
-//Logging tag
+extern struct GlobalState globalState;
+// Logging tag
 static const char *TAG = "FobBatteryMonitor";
 
 // i2c pins
@@ -44,20 +46,23 @@ void fobBatteryMonitor(void *pvParameters)
 
         if (r == ESP_OK)
         {
-             ESP_LOGI(TAG, "Voltage: %.2fV", voltage);
-            
+            ESP_LOGI(TAG, "Voltage: %.2fV , Percent: %f", voltage, soc_percent);
         }
         else
-            // ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
+        {
+            ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
+        }
 
-            r = max1704x_get_soc(&dev, &soc_percent);
+        r = max1704x_get_soc(&dev, &soc_percent);
         if (r == ESP_OK)
         {
             // ESP_LOGI(TAG, "SOC: %.2f%%", soc_percent);
-            //globalState.batteryPercentage = soc_percent;
+            globalState.batteryPercentage = soc_percent;
         }
         else
+        {
             ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
+        }
 
         r = max1704x_get_crate(&dev, &rate_change);
         if (r == ESP_OK)
@@ -65,8 +70,9 @@ void fobBatteryMonitor(void *pvParameters)
             // ESP_LOGI(TAG, "SOC rate of change: %.2f%%", rate_change);
         }
         else
+        {
             ESP_LOGI(TAG, "Error %d: %s", r, esp_err_to_name(r));
-
+        }
         
         vTaskDelay(pdMS_TO_TICKS(5000));
     }

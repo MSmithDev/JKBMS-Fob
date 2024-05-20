@@ -104,7 +104,7 @@ void gui_task(void *pvParameters)
             // ESP_LOGI(TAG, "Got BLE Fake Data");
         }
 
-#include <stdbool.h>
+
 
         // Get the current state of the buttons
         bool curUPKeyState = gpio_get_level(GPIO_NUM_0) == 0;
