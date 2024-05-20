@@ -23,13 +23,9 @@
 #include "gui/screens/control_screen/control_screen.hpp"
 #include "gui/screens/info_screen/info_screen.hpp"
 
-//helpers
+// helpers
 #include "helpers/jkbms.h"
 #include "helpers/utils.h"
-
-
-
-
 
 static const char *TAG = "GUI_Task";
 
@@ -48,11 +44,7 @@ extern QueueHandle_t bleScan_data_queue;
 void gui_task(void *pvParameters)
 {
 
-    
-
     ble_data_queue = xQueueCreate(5, sizeof(BLEControl));
-
-    
 
     // Initialize 3 buttons
     // Button UP
@@ -101,10 +93,8 @@ void gui_task(void *pvParameters)
 
         if (xQueueReceive(jkbms_data_queue, &jkbmsData, (TickType_t)5))
         {
-            // ESP_LOGI(TAG, "Got BLE Fake Data");
+            // ESP_LOGI(TAG, "Got JKBMS Data");
         }
-
-
 
         // Get the current state of the buttons
         bool curUPKeyState = gpio_get_level(GPIO_NUM_0) == 0;
@@ -162,7 +152,16 @@ void gui_task(void *pvParameters)
             }
             if (globalState.downKey)
             {
-                globalState.CurrentPage++;
+                // If BLE is not connected, skip the settings page
+                if (globalState.bleConnected)
+                {
+                    globalState.CurrentPage++;
+                }
+                else
+                {
+                    globalState.CurrentPage = 3;
+                }
+
                 if (globalState.CurrentPage > 3)
                 {
                     globalState.CurrentPage = 0;
@@ -204,7 +203,6 @@ void gui_task(void *pvParameters)
 
         case 2: // Control Page
 
-            
             if (globalState.inControl == false)
             {
                 // Update the current page based on the button press
@@ -225,7 +223,6 @@ void gui_task(void *pvParameters)
                     }
                 }
             }
-            
 
             control_screen(bgSprite, &globalState, &jkbmsData);
             UIWidgets::navBar(bgSprite, curUPKeyState, curSelectKeyState, curDownKeyState);
@@ -240,7 +237,14 @@ void gui_task(void *pvParameters)
             {
                 if (globalState.upKey)
                 {
-                    globalState.CurrentPage--;
+                    if (globalState.bleConnected)
+                    {
+                        globalState.CurrentPage--;
+                    }
+                    else
+                    {
+                        globalState.CurrentPage = 0;
+                    }
                     if (globalState.CurrentPage < 0)
                     {
                         globalState.CurrentPage = 3;
@@ -248,7 +252,14 @@ void gui_task(void *pvParameters)
                 }
                 if (globalState.downKey)
                 {
-                    globalState.CurrentPage++;
+                    if (globalState.bleConnected)
+                    {
+                        globalState.CurrentPage++;
+                    }
+                    else
+                    {
+                        globalState.CurrentPage = 0;
+                    }
                     if (globalState.CurrentPage > 3)
                     {
                         globalState.CurrentPage = 0;

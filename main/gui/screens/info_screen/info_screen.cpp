@@ -1,5 +1,5 @@
 #include "info_screen.hpp"
-#include "gui/images/CommandsIcon.h"
+#include "gui/images/NoBluetoothIcon.h"
 
 void info_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData)
 {
@@ -20,6 +20,6 @@ void info_screen(LGFX_Sprite canvas, GlobalState *globalState, JKBMSData *jkData
         canvas.setTextDatum(TC_DATUM);
         canvas.drawString("Info No Ble", 135, 100);
         canvas.setTextDatum(TL_DATUM);
-        canvas.pushImage(135-32, 30, 64, 64, image_data_CommandsIcon, (uint16_t)0x07E0);
+        canvas.pushImage(135-32, 30, 64, 64, image_data_NoBluetoothIcon, (uint16_t)0x07E0);
     }
 }
