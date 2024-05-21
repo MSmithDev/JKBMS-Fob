@@ -20,6 +20,8 @@ public:
     static void arrowLabel(LGFX_Sprite canvas, int x, int y, bool up, bool down, int textSize, char* label);
 
     static void menuBoxRssi(LGFX_Sprite canvas, int x, int y, int w, int h, int selected, int numDevices, BLEScan scans[]);
+
+    static void brightnessBar(LGFX_Sprite canvas, int x, int y, int w, int h, int brightness);
 };  
 
 

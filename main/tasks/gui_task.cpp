@@ -46,6 +46,7 @@ void handle_page_navigation()
         switch(globalState.CurrentPage)
         {
             case 0:
+                // if BLE is connected, go to the next page otherwise go to the last page
                 globalState.bleConnected ? globalState.CurrentPage-- : globalState.CurrentPage = 3;
                 break;
 
@@ -77,7 +78,6 @@ void gui_task(void *pvParameters)
 {
     ble_data_queue = xQueueCreate(5, sizeof(BLEControl));
 
-    // Initialize buttons individually
     // Button UP
     gpio_pad_select_gpio(GPIO_NUM_0);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
@@ -94,6 +94,7 @@ void gui_task(void *pvParameters)
     gpio_set_pull_mode(GPIO_NUM_2, GPIO_PULLUP_PULLDOWN);
 
     display.init();
+    display.setBrightness(globalState.screenBrightness);
     display.setSwapBytes(true);
     display.setColorDepth(16);
 
@@ -160,7 +161,8 @@ void gui_task(void *pvParameters)
                 break;
             case 3: // Settings Page
                 if (globalState.settingsPage == 0) handle_page_navigation();
-                settings_screen(canvas, &globalState);
+                settings_screen(canvas, &globalState, &display);
+                
                 break;
         }
 

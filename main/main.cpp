@@ -3,6 +3,7 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
 #include "freertos/queue.h"
 #include "esp_sleep.h"
 #include "driver/rtc_io.h"
@@ -55,6 +56,40 @@ extern "C" void app_main()
     globalState.bleConnected = false;
     globalState.inControl = false;
     globalState.inSettings = false;
+    globalState.screenBrightness = 127;
+
+
+    // Initialize NVS.
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+    
+    //read settings from NVS
+    nvs_handle_t my_handle;
+                esp_err_t err;
+                err = nvs_open("storage", NVS_READWRITE, &my_handle);
+                if (err != ESP_OK)
+                {
+                    ESP_LOGI(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+                }
+                else
+                {
+                    //err = nvs_set_u8(my_handle, "screenBright", globalState.screenBrightness);
+                    err = nvs_get_i16(my_handle, "screenBright", &globalState.screenBrightness);
+                    if (err == ESP_OK)
+                    {
+                        ESP_LOGI(TAG, "NVS Read Brightness: %d", globalState.screenBrightness);
+                    }
+                    else
+                    {
+                        ESP_LOGI(TAG, "Error (%s) reading!", esp_err_to_name(err));
+                    }
+                    nvs_close(my_handle);
+                }
 
     /*  -----------------------------
         Start Tasks

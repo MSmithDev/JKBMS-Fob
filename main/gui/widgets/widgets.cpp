@@ -280,3 +280,16 @@ void UIWidgets::arrowLabel(LGFX_Sprite canvas, int x, int y, bool up, bool down,
         canvas.drawTriangle(x, y+40, x-10, y+30, x+10, y+30, TFT_ORANGE);
     }
 }
+
+
+void UIWidgets::brightnessBar(LGFX_Sprite canvas, int x, int y, int w, int h, int brightness) {
+    unsigned int ThemeColor = 0xbabcbbu;
+    unsigned int fillColor = 0xFF9900u;
+
+    // Draw the bar outline
+    canvas.drawRect(x, y, w, h, ThemeColor);
+
+    // Draw the filled bar
+    int fillWidth = (w - 2) * (brightness / 255.0); // Adjust the width to fit within the outline
+    canvas.fillRect(x + 1, y + 1, fillWidth, h - 2, fillColor);
+}

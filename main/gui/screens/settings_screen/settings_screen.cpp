@@ -11,7 +11,6 @@ extern QueueHandle_t bleScan_data_queue;
 
 int bleScanDevices = 0;
 BLEScan bleScan[20];
-
 int selectedDevice = 0;
 
 void handleNav(GlobalState *globalState, int *page, int prev, int next)
@@ -26,7 +25,7 @@ void handleNav(GlobalState *globalState, int *page, int prev, int next)
     }
 }
 
-void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
+void settings_screen(LGFX_Sprite canvas, GlobalState *globalState, LGFX *display)
 {
 
     // ESP_LOGI(TAG, "Devices found %d, selected Device %d", bleScanDevices, selectedDevice);
@@ -53,17 +52,16 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
         canvas.setTextDatum(TC_DATUM);
         canvas.drawString("Settings", 135, 100);
         canvas.setTextDatum(TL_DATUM);
-        canvas.pushImage(135-32, 30, 64, 64, image_data_SettingsIcon, (uint16_t)0x07E0);
+        canvas.pushImage(135 - 32, 30, 64, 64, image_data_SettingsIcon, (uint16_t)0x07E0);
     }
     else
     {
 
         switch (globalState->settingsPage)
         {
-        case 1:                           // Ble Setup
+        case 1: // Ble Setup
             canvas.fillSprite(0x000000u);
             UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "BLE Config");
-
 
             handleNav(globalState, &globalState->settingsPage, 4, 2);
             if (globalState->selectKey)
@@ -73,21 +71,26 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
             }
             break;
 
-        case 2:                           // Brightness
+        case 2: // Brightness
             canvas.fillSprite(0x000000u);
             UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Brightness");
 
             handleNav(globalState, &globalState->settingsPage, 1, 3);
+            if (globalState->selectKey)
+            {
+                globalState->settingsPage = 22;
+                globalState->selectKey = false;
+            }
             break;
 
-        case 3:                           // Sleep Modes
+        case 3: // Sleep Modes
             canvas.fillSprite(0x000000u);
             UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Sleep Modes");
 
             handleNav(globalState, &globalState->settingsPage, 2, 4);
             break;
 
-        case 4:                           // Back
+        case 4: // Back
             canvas.fillSprite(0x000000);
             UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Back");
 
@@ -173,6 +176,64 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState)
                 }
             }
 
+            break;
+
+        case 22: // Brightness
+            canvas.setTextSize(1.75);
+            canvas.setTextDatum(TL_DATUM);
+            canvas.drawString("Brightness", 50, 40);
+
+            UIWidgets::brightnessBar(canvas, 50, 60, 180, 20, globalState->screenBrightness);
+
+            if (globalState->downKey)
+            {
+                globalState->screenBrightness -= 25;
+                if (globalState->screenBrightness < 0)
+                {
+                    globalState->screenBrightness = 5;
+                }
+                display->setBrightness(globalState->screenBrightness);
+            }
+            if (globalState->upKey)
+            {
+                globalState->screenBrightness += 25;
+                if (globalState->screenBrightness > 255)
+                {
+                    globalState->screenBrightness = 255;
+                }
+                display->setBrightness(globalState->screenBrightness);
+            }
+
+            if (globalState->selectKey)
+            {
+                display->setBrightness(globalState->screenBrightness);
+
+                // Save brightness to NVS
+                nvs_handle_t my_handle;
+                esp_err_t err;
+                err = nvs_open("storage", NVS_READWRITE, &my_handle);
+                if (err != ESP_OK)
+                {
+                    ESP_LOGI(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+                }
+                else
+                {
+                    
+                    err = nvs_set_i16(my_handle, "screenBright", globalState->screenBrightness);
+                    if (err == ESP_OK)
+                    {
+                        ESP_LOGI(TAG, "Brightness: %d Saved!", globalState->screenBrightness);
+                    }
+                    else
+                    {
+                        ESP_LOGI(TAG, "Error (%s) writing!", esp_err_to_name(err));
+                    }
+                    nvs_close(my_handle);
+                }
+
+                globalState->settingsPage = 2;
+                globalState->selectKey = false;
+            }
             break;
         }
     }

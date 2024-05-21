@@ -7,9 +7,9 @@
 
 #include "helpers/jkbms.h"
 #include "helpers/utils.h"
+#include "gui/LGFX_Config.hpp"
 
-
-void settings_screen(LGFX_Sprite canvas, GlobalState *globalState);
+void settings_screen(LGFX_Sprite canvas, GlobalState *globalState, LGFX *display);
 
 
 
