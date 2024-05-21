@@ -53,6 +53,10 @@ void handle_page_navigation()
             case 3:    
                 globalState.bleConnected ? globalState.CurrentPage-- : globalState.CurrentPage = 0;
                 break;
+            
+            default:
+                globalState.CurrentPage--;
+                break;
         }
         if (globalState.CurrentPage < 0) globalState.CurrentPage = 3;
         
@@ -67,6 +71,10 @@ void handle_page_navigation()
 
             case 3:    
                 globalState.bleConnected ? globalState.CurrentPage++ : globalState.CurrentPage = 0;
+                break;
+            
+            default:
+                globalState.CurrentPage++;
                 break;
         }
         if (globalState.CurrentPage > 3) globalState.CurrentPage = 0;
@@ -135,6 +143,12 @@ void gui_task(void *pvParameters)
         globalState.downKey = !lastDownKeyState && curDownKeyState;
         globalState.selectKey = !lastSelectKeyState && curSelectKeyState;
 
+        //if any key is pressed, reset the sleep timer
+        if(globalState.upKey || globalState.downKey || globalState.selectKey)
+        {
+            globalState.resetSleepTimer = true;
+        }
+
         // Update last state to current state
         lastUPKeyState = curUPKeyState;
         lastDownKeyState = curDownKeyState;
@@ -160,7 +174,7 @@ void gui_task(void *pvParameters)
                 control_screen(canvas, &globalState, &jkbmsData);
                 break;
             case 3: // Settings Page
-                if (globalState.settingsPage == 0) handle_page_navigation();
+                if (!globalState.inSettings) handle_page_navigation();
                 settings_screen(canvas, &globalState, &display);
                 
                 break;

@@ -27,6 +27,9 @@ struct GlobalState {
     bool selectKey;
     float batteryPercentage;
     int16_t screenBrightness;
+    bool hasSavedDevice;
+    int32_t sleepMode;
+    bool resetSleepTimer;
 };
 
 // Function prototypes that will be implemented in C

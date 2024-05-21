@@ -13,6 +13,8 @@ int bleScanDevices = 0;
 BLEScan bleScan[20];
 int selectedDevice = 0;
 
+
+
 void handleNav(GlobalState *globalState, int *page, int prev, int next)
 {
     if (globalState->downKey)
@@ -88,6 +90,11 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState, LGFX *display
             UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "Sleep Modes");
 
             handleNav(globalState, &globalState->settingsPage, 2, 4);
+            if (globalState->selectKey)
+            {
+                globalState->settingsPage = 33;
+                globalState->selectKey = false;
+            }
             break;
 
         case 4: // Back
@@ -232,6 +239,73 @@ void settings_screen(LGFX_Sprite canvas, GlobalState *globalState, LGFX *display
                 }
 
                 globalState->settingsPage = 2;
+                globalState->selectKey = false;
+            }
+            break;
+
+            case 33: // Sleep Modes
+
+            canvas.fillSprite(0x000000u);
+            
+            switch(globalState->sleepMode) {
+                
+                case 0:
+                    handleNav(globalState, &globalState->sleepMode, 0, 1);
+                    UIWidgets::arrowLabel(canvas, 135, 75, false, true, 2, "Off");
+                    break;
+
+                case 1:
+                    handleNav(globalState, &globalState->sleepMode, 0, 2);
+                    UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "10 Sec");
+                    break;
+
+                case 2:
+                    handleNav(globalState, &globalState->sleepMode, 1, 3);
+                    UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "30 Sec");
+                    break;
+                
+                case 3:
+                    handleNav(globalState, &globalState->sleepMode, 2, 4);
+                    UIWidgets::arrowLabel(canvas, 135, 75, true, true, 2, "1 Min");
+                    break;
+                
+                case 4:
+                    handleNav(globalState, &globalState->sleepMode, 3, 4);
+                    UIWidgets::arrowLabel(canvas, 135, 75, true, false, 2, "5 Min");
+                    break;
+            }
+
+            
+
+
+            if(globalState->selectKey)
+            {
+
+                 // Save sleep mode to NVS
+                nvs_handle_t my_handle;
+                esp_err_t err;
+                err = nvs_open("storage", NVS_READWRITE, &my_handle);
+                if (err != ESP_OK)
+                {
+                    ESP_LOGI(TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+                }
+                else
+                {
+                    
+                    err = nvs_set_i32(my_handle, "sleepMode", globalState->sleepMode);
+                    if (err == ESP_OK)
+                    {
+                        ESP_LOGI(TAG, "Sleep Mode: %d Saved!", globalState->sleepMode);
+                    }
+                    else
+                    {
+                        ESP_LOGI(TAG, "Error (%s) writing!", esp_err_to_name(err));
+                    }
+                    nvs_close(my_handle);
+                }
+
+
+                globalState->settingsPage = 3;
                 globalState->selectKey = false;
             }
             break;
